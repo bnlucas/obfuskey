@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "obfuskey"
+version = "0.1.0"
+description = "A small library for creating reversible, obfuscated, identifier hashes using a given alphabet."
+authors = ["Nathan Lucas <nathan@bnlucas.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.0.0"
+pytest-cov = "^3.0.0"
+flake8 = "^4.0.1"
+black = { version = "*", allow-prereleases = true }
+gmpy2 = { version = "*", optional = true }
+pre-commit = "^2.16.0"
+tox = "^3.24.5"
+
+[tool.poetry.extras]
+gmpy2 = ["gmpy2"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
