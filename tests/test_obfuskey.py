@@ -19,11 +19,10 @@ def test_version():
 class TestObfusKey:
     def test_obfuskey(self) -> None:
         key_length = random.randint(1, 32)
-        expected = random.randint(0, 100000)
-
         obfuskey = ObfusKey(random.choice(alphabets.__all__), key_length=key_length)
-        key = obfuskey.to_key(expected)
+        expected = random.randint(0, obfuskey.maximum_value)
 
+        key = obfuskey.to_key(expected)
         assert key != expected
 
         actual = obfuskey.to_value(key)
