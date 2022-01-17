@@ -4,10 +4,11 @@ from obfuskey.exceptions import MaximumValueError
 
 
 def factor(n) -> tuple[int, int]:
-    """Solve for s, d where n - 1 = 2^s * d
+    """
+    Solve for s, d where n - 1 = 2^s * d
 
     :param n: an integer being tested for primality
-    :return:
+    :return: s, d
     """
     s = 0
     d = n - 1
@@ -20,8 +21,14 @@ def factor(n) -> tuple[int, int]:
 
 
 def is_prime(n: int) -> int:
-    if int(n) != n:
-        raise ValueError("Non-integer value provided")
+    """
+    Determines if an integer is prime
+
+    :param n: the integer being tested
+    :return: true if the integer is prime, else false
+    """
+    if n == 2:
+        return True
 
     if gcd(n, 510510) > 1:
         return n in (2, 3, 5, 7, 11, 13, 17)
@@ -33,6 +40,15 @@ def is_prime(n: int) -> int:
 
 
 def next_prime(n) -> int:
+    """
+    Determines the next prime after a given integer.
+
+    If the integer is larger than 512-bit, the gmpy2 package is used. If this package
+    is not installed, a MaximumValueError is raised.
+
+    :param n: the starting integer
+    :return: the next available prime
+    """
     if n.bit_length() > 512:
         try:
             from gmpy2 import next_prime
@@ -93,6 +109,13 @@ def next_prime(n) -> int:
 
 
 def small_strong_pseudoprime(n: int) -> bool:
+    """
+    Checks against a composite number to identify if an integer is prime or a
+    pseudoprime. This checks against bases 2, 13, 23, and 1662803.
+
+    :param n: the integer being tested
+    :return: true if the integer is thought to be prime, else false
+    """
     for base in [2, 13, 23, 1662803]:
         if not strong_pseudoprime(n, base):
             return False
@@ -100,13 +123,19 @@ def small_strong_pseudoprime(n: int) -> bool:
     return True
 
 
-def strong_pseudoprime(n, base=2, s=None, d=None):
+def strong_pseudoprime(n, base=2):
+    """
+    Checks against a composite number to identify if an integer in a given base is
+    prime or a pseudoprime.
+
+    :param n: the integer being tested
+    :param base: the base to test against
+    :return: true if the integer is thought to be prime, else false
+    """
     if not n & 1:
         return False
 
-    if not s or not d:
-        s, d = factor(n)
-
+    s, d = factor(n)
     x = pow(base, d, n)
 
     if x == 1:
@@ -122,4 +151,10 @@ def strong_pseudoprime(n, base=2, s=None, d=None):
 
 
 def trial_division(n: int) -> int:
+    """
+    Determines if an integer is prime by using trial division.
+
+    :param n: the integer being tested
+    :return: true if the integer is prime, else false
+    """
     return all(n % i for i in range(3, isqrt(n) + 1, 2))

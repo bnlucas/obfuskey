@@ -34,7 +34,7 @@ class NegativeValueError(ObfuskeyError):
     pass
 
 
-class UnknownValueError(ObfuskeyError):
+class UnknownKeyError(ObfuskeyError):
     """Raised when an encoded value contains characters not found in the alphabet"""
 
     pass

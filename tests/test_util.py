@@ -1,12 +1,12 @@
 import pytest
 
 from obfuskey import alphabets, utils
-from obfuskey.exceptions import NegativeValueError, UnknownValueError
+from obfuskey.exceptions import NegativeValueError, UnknownKeyError
 
 
 class TestUtil:
     def test_decode_duplicate(self) -> None:
-        with pytest.raises(UnknownValueError):
+        with pytest.raises(UnknownKeyError):
             key = "test"
             utils.decode(key, alphabets.BASE36)
 

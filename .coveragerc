@@ -1,2 +1,8 @@
 [run]
-omit = tests/*
+omit =
+    */__init__.py
+    obfuskey/_constants.py
+    obfuskey/_types.py
+    obfuskey/alphabets.py
+    obfuskey/exceptions.py
+    tests/*

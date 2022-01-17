@@ -4,9 +4,25 @@ version = "0.1.0"
 description = "A small library for creating reversible, obfuscated, identifier hashes using a given alphabet."
 authors = ["Nathan Lucas <nathan@bnlucas.com>"]
 license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/bnlucas/obfuskey"
+repository = "https://github.com/bnlucas/obfuskey"
+keywords = ["obfuskey", "obfuscate", "basehash", "key"]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+	"Programming Language :: Python :: 3.6",
+	"Programming Language :: Python :: 3.7",
+	"Programming Language :: Python :: 3.8",
+	"Programming Language :: Python :: 3.9",
+	"Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.6.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0.0"
