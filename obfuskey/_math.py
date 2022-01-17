@@ -1,6 +1,33 @@
-from math import gcd, isqrt
+from math import gcd
 
 from obfuskey.exceptions import MaximumValueError
+
+try:
+    from math import isqrt
+except ImportError:
+    def isqrt(n):
+        """
+        integer square root.
+        - In number theory, the integer square root (isqrt) of a positive integer n
+          is the positive integer m which is the greatest integer less than or equal
+          to the square root of n.
+        """
+
+        if n < 0:
+            raise ValueError('Square root is not defined for negative numbers.')
+
+        if n < 2:
+            return 2
+
+        a = 1 << ((1 + n.bit_length()) >> 1)
+
+        while True:
+            b = (a + n // a) >> 1
+
+            if b >= a:
+                return a
+
+            a = b
 
 
 def factor(n) -> tuple[int, int]:
