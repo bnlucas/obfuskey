@@ -56,3 +56,13 @@ exclude = '''
   | dist
 )/
 '''
+
+[tool.semantic_release]
+version_variable = [
+    "obfuskey/__init__.py:__version__",
+    "pyproject.toml:version"
+]
+branch = "main"
+upload_to_pypi = false
+upload_to_release = true
+build_command = "pip install poetry && poetry build"
