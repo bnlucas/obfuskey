@@ -1,4 +1,4 @@
-from obfuskey._model import ObfusKey
+from obfuskey._obfuskey import ObfusKey
 
 __version__ = "0.1.0"
 
