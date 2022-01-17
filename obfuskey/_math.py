@@ -5,6 +5,7 @@ from obfuskey.exceptions import MaximumValueError
 try:
     from math import isqrt
 except ImportError:
+
     def isqrt(n):
         """
         integer square root.
@@ -14,7 +15,7 @@ except ImportError:
         """
 
         if n < 0:
-            raise ValueError('Square root is not defined for negative numbers.')
+            raise ValueError("Square root is not defined for negative numbers.")
 
         if n < 2:
             return 2
