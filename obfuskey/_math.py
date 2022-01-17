@@ -68,6 +68,27 @@ def is_prime(n: int) -> int:
     return small_strong_pseudoprime(n)
 
 
+def modinv(base: int, mod: int) -> int:
+    try:
+        return pow(base, -1, mod)
+    except ValueError:
+        g, _g = base, mod
+        x, _x = 1, 0
+
+        while _g:
+            q = g // _g
+            g, _g = _g, (g - q * _g)
+            x, _x = _x, (x - q * _x)
+
+        if g > 1:
+            raise ValueError("There is no inverse for {} mod {}".format(base, mod))
+
+        if x < 0:
+            x = x + mod
+
+        return x
+
+
 def next_prime(n) -> int:
     """
     Determines the next prime after a given integer.
