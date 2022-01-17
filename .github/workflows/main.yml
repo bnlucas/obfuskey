@@ -40,6 +40,11 @@ jobs:
         run: poetry install --no-root
       - name: Run pytest
         run: poetry run python -m pytest --cov=obfuskey --cov-report=xml tests/
+  coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
       - name: Upload Coverage
         uses: codecov/codecov-action@v1
         with:
