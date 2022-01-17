@@ -1,4 +1,5 @@
 from obfuskey._constants import KEY_LENGTH, PRIME_MULTIPLIER
+from obfuskey._math import modinv
 from obfuskey._types import FloatType
 from obfuskey.utils import decode, encode, generate_prime
 from obfuskey.exceptions import (
@@ -135,7 +136,7 @@ class ObfusKey:
         key = decode(key, self.__alphabet)
         max_p1 = self.__maximum_value + 1
 
-        return key * pow(self.__multiplier, -1, max_p1) % max_p1
+        return key * modinv(self.__multiplier, max_p1) % max_p1
 
     def __generate_multiplier(self) -> None:
         """Generates the next prime number after the instance's maximum value"""
