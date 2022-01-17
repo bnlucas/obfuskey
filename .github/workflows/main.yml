@@ -34,9 +34,7 @@ jobs:
           path: .venv
           key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
       - name: Ensure cache is healthy
-        if: steps.cache.outputs.cache-hit == 'true'
-        run: poetry run pip --version >/dev/null 2>&1 || rm -rf .venv
-      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: poetry install --no-root
       - name: Run pytest
         run: poetry run python -m pytest --cov=obfuskey --cov-report=xml tests/
