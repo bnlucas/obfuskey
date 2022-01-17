@@ -81,7 +81,7 @@ def modinv(base: int, mod: int) -> int:
             x, _x = _x, (x - q * _x)
 
         if g > 1:
-            raise ValueError('There is no inverse for {} mod {}'.format(base, mod))
+            raise ValueError("There is no inverse for {} mod {}".format(base, mod))
 
         if x < 0:
             x = x + mod
