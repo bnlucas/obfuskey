@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.6, 3.7, 3.8, 3.9 ]
+        python-version: [ 3.4, 3.5, 3.6, 3.7, 3.8, 3.9 ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
@@ -32,3 +32,10 @@ jobs:
         run: poetry install --no-root
       - name: Run pytest
         run: poetry run python -m pytest --cov=obfuskey --cov-report=xml tests/
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          name: obfuskey-coverage
+          fail_ci_if_error: true
