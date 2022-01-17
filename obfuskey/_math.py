@@ -31,7 +31,7 @@ except ImportError:
             a = b
 
 
-def factor(n) -> tuple[int, int]:
+def factor(n) -> tuple[int]:
     """
     Solve for s, d where n - 1 = 2^s * d
 
