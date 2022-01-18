@@ -12,7 +12,7 @@ from obfuskey.exceptions import (
 )
 
 
-class ObfusKey:
+class Obfuskey:
     def __init__(
         self,
         alphabet: str,
@@ -75,7 +75,7 @@ class ObfusKey:
         self.__prime_multiplier = multiplier
         self.__generate_multiplier()
 
-    def to_key(self, value: int) -> str:
+    def get_key(self, value: int) -> str:
         """
         Returns an obfuscated key of the given integer value.
 
@@ -101,12 +101,12 @@ class ObfusKey:
         if self.__multiplier is None:
             self.__generate_multiplier()
 
-        value = value * self.__multiplier % len(self.__alphabet) ** self.__key_length
+        value = value * self.__multiplier % (self.__maximum_value + 1)
         value = encode(value, self.__alphabet)
 
         return value.rjust(self.__key_length, self.__alphabet[0])
 
-    def to_value(self, key: str) -> int:
+    def get_value(self, key: str) -> int:
         """
         Reverses an obfuscated key back to it's integer value.
 

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "obfuskey"
-version = "0.1.0"
-description = "A small library for creating reversible, obfuscated, identifier hashes using a given alphabet."
+version = "0.1.1"
+description = "A small library for obfuscating integer values to key strings using a set length and alphabet."
 authors = ["Nathan Lucas <nathan@bnlucas.com>"]
 license = "MIT"
 readme = "README.md"
@@ -16,7 +16,6 @@ classifiers = [
 	"Programming Language :: Python :: 3.7",
 	"Programming Language :: Python :: 3.8",
 	"Programming Language :: Python :: 3.9",
-	"Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Utilities",
 ]
