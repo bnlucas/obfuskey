@@ -24,7 +24,7 @@ can also provide your own multiplier, or leave it blank to use the built-in prim
 generator.
 
 ```python
-from Obfuskey import Obfuskey, alphabets
+from obfuskey import Obfuskey, alphabets
 
 obfuscator = Obfuskey(alphabets.BASE36, key_length=8)
 
@@ -37,7 +37,7 @@ previous instance, you can pass it in with `multiplier=`. This value has to be a
 integer.
 
 ```python
-from Obfuskey import Obfuskey, alphabets
+from obfuskey import Obfuskey, alphabets
 
 obfuscator = Obfuskey(alphabets.BASE62)
 key = obfuscator.get_key(12345)  # d2Aasl
@@ -50,7 +50,7 @@ If you wish to generate a prime not within the golden prime set, you can overwri
 multiplier with `set_prime_multiplier`.
 
 ```python
-from Obfuskey import Obfuskey, alphabets
+from obfuskey import Obfuskey, alphabets
 
 obfuscator = Obfuskey(alphabets.BASE62, key_length=2)
 key = obfuscator.get_key(123)  # 3f
