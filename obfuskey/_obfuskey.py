@@ -12,7 +12,7 @@ from obfuskey.exceptions import (
 )
 
 
-class ObfusKey:
+class Obfuskey:
     def __init__(
         self,
         alphabet: str,

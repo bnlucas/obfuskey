@@ -1,7 +1,7 @@
 import random
 import pytest
 
-from obfuskey import __version__, alphabets, ObfusKey
+from obfuskey import __version__, alphabets, Obfuskey
 from obfuskey.exceptions import (
     DuplicateError,
     MultiplierError,
@@ -19,7 +19,7 @@ def test_version():
 class TestObfusKey:
     def test_obfuskey(self) -> None:
         key_length = random.randint(1, 32)
-        obfuskey = ObfusKey(random.choice(alphabets.__all__), key_length=key_length)
+        obfuskey = Obfuskey(random.choice(alphabets.__all__), key_length=key_length)
         expected = random.randint(0, obfuskey.maximum_value)
 
         key = obfuskey.get_key(expected)
@@ -30,33 +30,33 @@ class TestObfusKey:
 
     def test_duplicates_in_alphabet(self) -> None:
         with pytest.raises(DuplicateError):
-            ObfusKey("aabcdef")
+            Obfuskey("aabcdef")
 
     @pytest.mark.parametrize("multiplier", [200, 200.5])
     def test_multiplier_error(self, multiplier: int) -> None:
         with pytest.raises(MultiplierError):
-            ObfusKey("abcdef", multiplier=multiplier)
+            Obfuskey("abcdef", multiplier=multiplier)
 
     def test_key_length(self) -> None:
         key_length = 10
-        obfuskey = ObfusKey("abc", key_length=key_length)
+        obfuskey = Obfuskey("abc", key_length=key_length)
 
         assert obfuskey.key_length == key_length
 
     def test_maximum_value(self) -> None:
         maximum_value = 3 ** 6 - 1
-        obfuskey = ObfusKey("abc")
+        obfuskey = Obfuskey("abc")
 
         assert obfuskey.maximum_value == maximum_value
 
     @pytest.mark.parametrize("multiplier,expected", [(None, 1181), (123, 123)])
     def test_multiplier(self, multiplier: int, expected: int) -> None:
-        obfuskey = ObfusKey("abc", multiplier=multiplier)
+        obfuskey = Obfuskey("abc", multiplier=multiplier)
 
         assert obfuskey.multiplier == expected
 
     def test_set_prime_multiplier(self) -> None:
-        obfuskey = ObfusKey("abc")
+        obfuskey = Obfuskey("abc")
         obfuskey.set_prime_multiplier(1.75)
 
         assert obfuskey.multiplier == 1277
@@ -75,21 +75,21 @@ class TestObfusKey:
         ],
     )
     def test_get_key(self, alphabet: str, value: int, key: str) -> None:
-        obfuskey = ObfusKey(alphabet)
+        obfuskey = Obfuskey(alphabet)
         assert obfuskey.get_key(value) == key
 
     def test_get_key_negative(self) -> None:
         with pytest.raises(NegativeValueError):
-            obfuskey = ObfusKey("abc")
+            obfuskey = Obfuskey("abc")
             obfuskey.get_key(-1)
 
     def test_get_key_over_maximum_value(self) -> None:
         with pytest.raises(MaximumValueError):
-            obfuskey = ObfusKey("abc")
+            obfuskey = Obfuskey("abc")
             obfuskey.get_key(obfuskey.maximum_value + 1)
 
     def test_get_key_zero_value(self) -> None:
-        obfuskey = ObfusKey("abc")
+        obfuskey = Obfuskey("abc")
         assert obfuskey.get_key(0) == "aaaaaa"
 
     @pytest.mark.parametrize(
@@ -106,19 +106,19 @@ class TestObfusKey:
         ],
     )
     def test_get_value(self, alphabet: str, value: int, key: str) -> None:
-        obfuskey = ObfusKey(alphabet)
+        obfuskey = Obfuskey(alphabet)
         assert obfuskey.get_value(key) == value
 
     def test_get_value_unknown_value(self) -> None:
         with pytest.raises(UnknownKeyError):
-            obfuskey = ObfusKey("abc")
+            obfuskey = Obfuskey("abc")
             obfuskey.get_value("abcd")
 
     def test_get_value_over_key_length(self) -> None:
         with pytest.raises(KeyLengthError):
-            obfuskey = ObfusKey("abc")
+            obfuskey = Obfuskey("abc")
             obfuskey.get_value("a" * (obfuskey.key_length + 1))
 
     def test_get_value_zero_value_key(self) -> None:
-        obfuskey = ObfusKey("abc")
+        obfuskey = Obfuskey("abc")
         assert obfuskey.get_value("aaaaaa") == 0
