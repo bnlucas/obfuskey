@@ -3,34 +3,6 @@ from typing import Tuple
 
 from obfuskey.exceptions import MaximumValueError
 
-try:
-    from math import isqrt
-except ImportError:
-
-    def isqrt(n: int) -> int:
-        """
-        integer square root.
-        - In number theory, the integer square root (isqrt) of a positive integer n
-          is the positive integer m which is the greatest integer less than or equal
-          to the square root of n.
-        """
-
-        if n < 0:
-            raise ValueError("Square root is not defined for negative numbers.")
-
-        if n < 2:
-            return 2
-
-        a = 1 << ((1 + n.bit_length()) >> 1)
-
-        while True:
-            b = (a + n // a) >> 1
-
-            if b >= a:
-                return a
-
-            a = b
-
 
 def factor(n) -> Tuple[int, int]:
     """
@@ -47,6 +19,36 @@ def factor(n) -> Tuple[int, int]:
         d //= 2
 
     return s, d
+
+
+def int_sqrt(n: int) -> int:
+    """
+    Returns the integer square root of n.
+
+    :param n: an int value
+    :return: the integer square root
+    """
+    try:
+        from math import isqrt
+
+        return isqrt(n)
+    except ImportError:
+        # For Python <=3.7
+        if n < 0:
+            raise ValueError("Square root is not defined for negative numbers.")
+
+        if n < 2:
+            return 2
+
+        a = 1 << ((1 + n.bit_length()) >> 1)
+
+        while True:
+            b = (a + n // a) >> 1
+
+            if b >= a:
+                return a
+
+            a = b
 
 
 def is_prime(n: int) -> int:
@@ -69,9 +71,17 @@ def is_prime(n: int) -> int:
 
 
 def modinv(base: int, mod: int) -> int:
+    """
+    Returns the modular inverse of base % mod.
+
+    :param base: the base
+    :param mod: the modulus
+    :return: the modular inverse
+    """
     try:
         return pow(base, -1, mod)
     except ValueError:
+        # For Python <=3.7
         g, _g = base, mod
         x, _x = 1, 0
 
@@ -207,4 +217,4 @@ def trial_division(n: int) -> int:
     :param n: the integer being tested
     :return: true if the integer is prime, else false
     """
-    return all(n % i for i in range(3, isqrt(n) + 1, 2))
+    return all(n % i for i in range(3, int_sqrt(n) + 1, 2))

@@ -1,38 +1,21 @@
 # ObfusKey
-***
 
 [![pypi][pypi-v]][pypi] [![license][pypi-l]][pypi] [![coverage][codecov-i]][codecov] [![build][workflow-i]][workflow]
 
-ObfusKey is a utility for generating obfuscated keys of integer values. While working
-to modernize its predecessor, [BaseHash](basehash), it was found that a lot of
-simplifications could be made, thus ObfusKey was born.
+Taking lessons learned from supporting [BaseHash][basehash] over the years, it was
+obvious that it could be optimized, thus ObfusKey was born. BaseHash had some
+misconceptions, mainly that consumers thought it was a crypto library due to the word 
+"hash". Since a hashes are generally irreversible, this new project was born to clearly 
+convey what it is used for.
 
-ObfusKey was built solely for Python 3.6 or higher. For lower versions, you can still
-use [BaseHash][basehash].
+ObfusKey was a way to both modernize and simplify [BaseHash][basehash], while keeping
+the same functionality. ObfusKey generates obfuscated keys out of integer values that
+have a uniform length using a specified alphabet. It was built solely for Python 3.6 and
+up. There are no guarantees that it will work for lower versions. If you need this for
+a lower version, please use [BaseHash][basehash].
 
-ObfusKey will generate obfuscated, reversible keys using a given alphabet and key
-length. The maximum value it can process is `base ** key_length - 1`, where `base` is
-the length of the provided alphabet. An optional modifier can also be provided, which is
-then required when reversing the key into it's original value. If a modifier is not
-provided, ObfusKey will generate the next prime integer after
-`base ** key_length - 1` along with a prime modifier. The default prime modifier will
-generate golden ratio primes, but this can be overwritten.
-
-## Install
-
-```text
-$ pip install obfuskey
-```
-
-If you're building from source
-
-```text
-$ pip install .
-
-OR
-
-$ poetry install
-```
+When generating keys, the combination of key length and alphabet used will determine the
+maximum value it can obfuscate, `len(alphabet) ** key_length - 1`.
 
 ## Usage
 
@@ -43,11 +26,10 @@ generator.
 ```python
 from obfuskey import ObfusKey, alphabets
 
-
 obfuscator = ObfusKey(alphabets.BASE36, key_length=8)
 
-key = obfuscator.to_key(1234567890)     # FWQ8H52I
-value = obfuscator.to_value('FWQ8H52I') # 1234567890
+key = obfuscator.get_key(1234567890)  # FWQ8H52I
+value = obfuscator.get_value('FWQ8H52I')  # 1234567890
 ```
 
 To provide a custom multiplier, or if you to provide the prime generated from a
@@ -57,23 +39,24 @@ integer.
 ```python
 from obfuskey import ObfusKey, alphabets
 
+obfuscator = ObfusKey(alphabets.BASE62)
+key = obfuscator.get_key(12345)  # d2Aasl
 
 obfuscator = ObfusKey(alphabets.BASE62, multiplier=46485)
-key = obfuscator.to_key(12345) # 0cpqVJ
+key = obfuscator.get_key(12345)  # 0cpqVJ
 ```
 
 If you wish to generate a prime not within the golden prime set, you can overwrite the
-multiplier with
+multiplier with `set_prime_multiplier`.
 
 ```python
 from obfuskey import ObfusKey, alphabets
 
-
-obfuscator = ObfusKey(alphabets.BASE62, key_length=3)
-key = obfuscator.to_key(123) # 1O9
+obfuscator = ObfusKey(alphabets.BASE62, key_length=2)
+key = obfuscator.get_key(123)  # 3f
 
 obfuscator.set_prime_multiplier(1.75)
-key = obfuscator.to_key(123) # Fyl
+key = obfuscator.get_key(123)  # RP
 ```
 
 ## Extras
