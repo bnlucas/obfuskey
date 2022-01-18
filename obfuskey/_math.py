@@ -37,8 +37,11 @@ def int_sqrt(n: int) -> int:
         if n < 0:
             raise ValueError("Square root is not defined for negative numbers.")
 
-        if n < 2:
-            return 2
+        if n == 0:
+            return 0
+
+        if n <= 3:
+            return 1
 
         a = 1 << ((1 + n.bit_length()) >> 1)
 
