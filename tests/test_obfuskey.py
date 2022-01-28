@@ -65,6 +65,7 @@ class TestObfusKey:
         "alphabet,value,key",
         [
             (alphabets.BASE16, 12345, "A16A63"),
+            (alphabets.BASE32, 12345, "O6VAF5"),
             (alphabets.BASE36, 12345, "MNYJ53"),
             (alphabets.BASE52, 12345, "ckPl95"),
             (alphabets.BASE56, 12345, "dGTZmF"),
@@ -96,6 +97,7 @@ class TestObfusKey:
         "alphabet,value,key",
         [
             (alphabets.BASE16, 12345, "A16A63"),
+            (alphabets.BASE32, 12345, "O6VAF5"),
             (alphabets.BASE36, 12345, "MNYJ53"),
             (alphabets.BASE52, 12345, "ckPl95"),
             (alphabets.BASE56, 12345, "dGTZmF"),
