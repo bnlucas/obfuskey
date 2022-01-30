@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "obfuskey"
-version = "0.1.2"
+version = "0.1.3"
 description = "A small library for obfuscating integer values to key strings using a set length and alphabet."
 authors = ["Nathan Lucas <nathan@bnlucas.com>"]
 license = "MIT"

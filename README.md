@@ -59,6 +59,16 @@ obfuscator.set_prime_multiplier(1.75)
 key = obfuscator.get_key(123)  # RP
 ```
 
+There are predefined [alphabets][alphabets] that you can use, but Obfuskey allows you to
+specify a custom one during instantiation.
+
+```python
+from obfuskey import Obfuskey
+
+obfuscator = Obfuskey('012345abcdef')
+key = obfuscator.get_key(123) #022d43
+```
+
 ## Extras
 
 If you need to obfuscate integers that are larger than 512-bit, you will need to also
@@ -73,6 +83,7 @@ poetry install -E gmpy2
 ```
 
 [basehash]: https://github.com/bnlucas/python-basehash
+[alphabets]: https://github.com/bnlucas/obfuskey/blob/main/obfuskey/alphabets.py
 [gmpy2]: https://pypi.org/project/gmpy2/
 [pypi]: https://pypi.python.org/pypi/Obfuskey
 [pypi-v]: https://img.shields.io/pypi/v/Obfuskey.svg
