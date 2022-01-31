@@ -13,7 +13,7 @@ from obfuskey.exceptions import (
 
 
 def test_version():
-    assert __version__ == "0.1.2"
+    assert __version__ == "0.1.3"
 
 
 class TestObfusKey:
@@ -44,7 +44,7 @@ class TestObfusKey:
         assert obfuskey.key_length == key_length
 
     def test_maximum_value(self) -> None:
-        maximum_value = 3 ** 6 - 1
+        maximum_value = 3**6 - 1
         obfuskey = Obfuskey("abc")
 
         assert obfuskey.maximum_value == maximum_value
