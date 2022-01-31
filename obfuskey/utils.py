@@ -29,7 +29,7 @@ def decode(
         return alphabet.index(value)
 
     base = len(alphabet)
-    return sum(alphabet.index(c) * base ** i for i, c in enumerate(value[::-1]))
+    return sum(alphabet.index(c) * base**i for i, c in enumerate(value[::-1]))
 
 
 def encode(

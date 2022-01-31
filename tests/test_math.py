@@ -21,7 +21,7 @@ class TestMath:
         n = random.randint(0, 1000000)
         s, d = factor(n)
 
-        assert n - 1 == 2 ** s * d
+        assert n - 1 == 2**s * d
 
     @pytest.mark.skipif(
         sys.version_info > (3, 7),
