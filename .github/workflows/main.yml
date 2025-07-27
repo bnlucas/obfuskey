@@ -24,7 +24,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: abatilo/actions-poetry@v4
+      - uses: abatilo/actions-poetry@v3
         with:
           poetry-version: 1.1.11
       - name: Set up cache
@@ -60,7 +60,7 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           semantic-release publish
-      - uses: abatilo/actions-poetry@v4
+      - uses: abatilo/actions-poetry@v3
         with:
           poetry-version: 1.1.11
       - name: Configure poetry
