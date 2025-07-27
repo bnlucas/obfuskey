@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 class ObfuskeyError(Exception):
     """The base exception class of BaseHash"""
 

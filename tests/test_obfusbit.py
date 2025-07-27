@@ -54,7 +54,9 @@ def obfuskey_for_complex_uuid_schema() -> Obfuskey:
 @pytest.fixture
 def obfuskey_too_small_for_uuid() -> Obfuskey:
     """Obfuskey instance that cannot handle a UUID's bit length."""
-    return Obfuskey(alphabets.BASE58, key_length=12)  # Max ~71 bits, much smaller than 144 bits
+    return Obfuskey(
+        alphabets.BASE58, key_length=12
+    )  # Max ~71 bits, much smaller than 144 bits
 
 
 class TestObfusbit:
@@ -94,8 +96,9 @@ class TestObfusbit:
         # Debugging check: Ensure fixture logic is sound for this test
         total_schema_bits = sum(item["bits"] for item in complex_uuid_schema)
         schema_max_packed_value = (1 << total_schema_bits) - 1
-        assert obfuskey_too_small_for_uuid.maximum_value < schema_max_packed_value, \
-            "Fixture obfuskey_too_small_for_uuid is not small enough for complex_uuid_schema!"
+        assert (
+            obfuskey_too_small_for_uuid.maximum_value < schema_max_packed_value
+        ), "Fixture obfuskey_too_small_for_uuid is not small enough for complex_uuid_schema!"
 
         with pytest.raises(MaximumValueError) as excinfo:
             Obfusbit(complex_uuid_schema, obfuskey=obfuskey_too_small_for_uuid)
