@@ -6,12 +6,14 @@ from typing import Tuple
 from obfuskey.exceptions import MaximumValueError
 
 
-def factor(n) -> Tuple[int, int]:
+def factor(n: int) -> Tuple[int, int]:
     """
-    Solve for s, d where n - 1 = 2^s * d
+    Computes `s` and `d` such that `n - 1 = 2^s * d`, where `d` is odd.
+    This is a preliminary step for Miller-Rabin primality tests.
 
-    :param n: an integer being tested for primality
-    :return: s, d
+    :param n: The integer to factor (specifically, `n-1`).
+    :return: A tuple `(s, d)` representing the factored components.
+    :rtype: Tuple[int, int]
     """
     s = 0
     d = n - 1
@@ -23,18 +25,24 @@ def factor(n) -> Tuple[int, int]:
     return s, d
 
 
-def is_prime(n: int) -> int:
+def is_prime(n: int) -> bool:
     """
-    Determines if an integer is prime
+    Determines if an integer is a prime number.
+    It uses a combination of trial division for small numbers and
+    the Miller-Rabin primality test for larger numbers.
 
-    :param n: the integer being tested
-    :return: true if the integer is prime, else false
+    :param n: The integer to be tested for primality.
+    :return: `True` if the integer is prime, `False` otherwise.
+    :rtype: bool
     """
     if n == 2:
         return True
 
+    if n < 2 or n % 2 == 0:
+        return False
+
     if gcd(n, 510510) > 1:
-        return n in (2, 3, 5, 7, 11, 13, 17)
+        return n in (3, 5, 7, 11, 13, 17)
 
     if n < 2000000:
         return trial_division(n)
@@ -44,30 +52,36 @@ def is_prime(n: int) -> int:
 
 def modinv(base: int, mod: int) -> int:
     """
-    Returns the modular inverse of base % mod.
+    Returns the modular multiplicative inverse of `base` modulo `mod`.
+    This function computes `x` such that `(base * x) % mod == 1`.
 
-    :param base: the base
-    :param mod: the modulus
-    :return: the modular inverse
+    :param base: The base integer.
+    :param mod: The modulus.
+    :return: The modular inverse.
+    :raises ValueError: If the modular inverse does not exist (i.e., `base` and `mod` are not coprime).
+    :rtype: int
     """
     return pow(base, -1, mod)
 
 
-def next_prime(n) -> int:
+def next_prime(n: int) -> int:
     """
-    Determines the next prime after a given integer.
+    Determines the smallest prime number strictly greater than `n`.
 
-    If the integer is larger than 512-bit, the gmpy2 package is used. If this package
-    is not installed, a MaximumValueError is raised.
+    For integers larger than 512-bit, the `gmpy2` package is used for efficient
+    prime generation. If `gmpy2` is not installed, a `MaximumValueError` is raised.
+    For smaller integers, an optimized trial division approach is used.
 
-    :param n: the starting integer
-    :return: the next available prime
+    :param n: The starting integer.
+    :return: The next available prime number greater than `n`.
+    :raises MaximumValueError: If `n` is larger than 512-bit and `gmpy2` is not installed.
+    :rtype: int
     """
     if n.bit_length() > 512:
         try:
-            from gmpy2 import next_prime
+            from gmpy2 import next_prime as gmpy2_next_prime
 
-            return next_prime(n)
+            return gmpy2_next_prime(n)
         except ImportError:
             raise MaximumValueError(
                 "For integers larger than 512-bit, you must have gmpy2 installed."
@@ -111,6 +125,7 @@ def next_prime(n) -> int:
         1,
         2,
     ]
+
     n += 1 + (n & 1)
 
     if n % 3 == 0 or n % 5 == 0:
@@ -124,11 +139,13 @@ def next_prime(n) -> int:
 
 def small_strong_pseudoprime(n: int) -> bool:
     """
-    Checks against a composite number to identify if an integer is prime or a
-    pseudoprime. This checks against bases 2, 13, 23, and 1662803.
+    Performs a deterministic Miller-Rabin primality test for numbers up to 2,047,698,921.
+    This function checks against a specific set of bases (2, 13, 23, and 1662803)
+    which are sufficient to determine primality for numbers within this range.
 
-    :param n: the integer being tested
-    :return: true if the integer is thought to be prime, else false
+    :param n: The integer being tested.
+    :return: `True` if the integer is prime, `False` if it's composite.
+    :rtype: bool
     """
     for base in [2, 13, 23, 1662803]:
         if not strong_pseudoprime(n, base):
@@ -137,38 +154,48 @@ def small_strong_pseudoprime(n: int) -> bool:
     return True
 
 
-def strong_pseudoprime(n, base=2):
+def strong_pseudoprime(n: int, base: int = 2) -> bool:
     """
-    Checks against a composite number to identify if an integer in a given base is
-    prime or a pseudoprime.
+    Performs a single iteration of the Miller-Rabin primality test.
+    It checks if `n` is a strong pseudoprime to the given `base`.
 
-    :param n: the integer being tested
-    :param base: the base to test against
-    :return: true if the integer is thought to be prime, else false
+    :param n: The integer being tested for primality. Must be an odd integer greater than 2.
+    :param base: The base to test against. Defaults to 2.
+    :return: `True` if `n` passes the test (is likely prime or a strong pseudoprime),
+             `False` if `n` is definitely composite.
+    :rtype: bool
     """
     if not n & 1:
+        return False
+
+    if n == 1:
         return False
 
     s, d = factor(n)
     x = pow(base, d, n)
 
-    if x == 1:
+    if x == 1 or x == n - 1:
         return True
 
-    for i in range(s):
+    for _ in range(s - 1):
+        x = pow(x, 2, n)
+
         if x == n - 1:
             return True
 
-        x = pow(x, 2, n)
+        if x == 1:
+            return False
 
     return False
 
 
-def trial_division(n: int) -> int:
+def trial_division(n: int) -> bool:
     """
-    Determines if an integer is prime by using trial division.
+    Determines if an integer is prime by using trial division up to its square root.
+    This method is efficient for relatively small numbers.
 
-    :param n: the integer being tested
-    :return: true if the integer is prime, else false
+    :param n: The integer being tested for primality.
+    :return: `True` if the integer is prime, `False` otherwise.
+    :rtype: bool
     """
     return all(n % i for i in range(3, isqrt(n) + 1, 2))

@@ -47,3 +47,9 @@ class BitOverflowError(ObfuskeyError):
     """Raised when a value provided for bit packing exceeds its allocated bit capacity in the schema."""
 
     pass
+
+
+class SchemaValidationError(ObfuskeyError):
+    """Raised when the provided schema for Obfusbit is invalid or malformed."""
+
+    pass
