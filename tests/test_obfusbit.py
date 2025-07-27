@@ -78,6 +78,7 @@ class TestObfusbit:
     ) -> None:
         """Test Obfusbit initialization with an Obfuskey instance."""
         obb = Obfusbit(small_schema, obfuskey=obfuskey_for_small_schema)
+
         assert obb.schema == small_schema
         assert obb.obfuskey == obfuskey_for_small_schema
         assert obb.total_bits == 13
@@ -100,8 +101,8 @@ class TestObfusbit:
         )
 
         assert (
-                "but the provided Obfuskey instance can only handle up to a maximum value of"
-                in str(excinfo.value)
+            "but the provided Obfuskey instance can only handle up to a maximum value of"
+            in str(excinfo.value)
         )
 
     def test_pack_and_unpack_no_obfuscation(
@@ -159,6 +160,7 @@ class TestObfusbit:
 
         with pytest.raises(BitOverflowError) as excinfo:
             obb.pack(invalid_values)
+
         assert "exceeds its allocated" in str(excinfo.value)
         assert "field_a" in str(excinfo.value)
 
@@ -177,6 +179,7 @@ class TestObfusbit:
 
         with pytest.raises(ValueError) as excinfo:
             obb.pack(invalid_values)
+
         assert "Required value for 'field_b' not provided" in str(excinfo.value)
 
     def test_pack_obfuscate_without_obfuskey_error(
@@ -188,6 +191,7 @@ class TestObfusbit:
 
         with pytest.raises(ValueError) as excinfo:
             obb.pack({"field_a": 1, "field_b": 1, "flag_c": 0}, obfuscate=True)
+
         assert "An Obfuskey instance was not provided" in str(excinfo.value)
 
     def test_unpack_obfuscated_without_obfuskey_error(
@@ -199,6 +203,7 @@ class TestObfusbit:
 
         with pytest.raises(ValueError) as excinfo:
             obb.unpack("some_obfuscated_string", obfuscated=True)
+
         assert "An Obfuskey instance was not provided" in str(excinfo.value)
 
     @pytest.mark.parametrize(
