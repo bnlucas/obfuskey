@@ -26,7 +26,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: abatilo/actions-poetry@v3
         with:
-          poetry-version: 1.1.11
+          poetry-version: 1.8.2
       - name: Set up cache
         uses: actions/cache@v4
         id: cache
@@ -60,9 +60,9 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           semantic-release publish
-      - uses: abatilo/actions-poetry@v2
+      - uses: abatilo/actions-poetry@v3
         with:
-          poetry-version: 1.1.11
+          poetry-version: 1.8.2
       - name: Configure poetry
         run: poetry config virtualenvs.in-project true
       - name: Set up cache
