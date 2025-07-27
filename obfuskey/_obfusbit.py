@@ -132,7 +132,7 @@ class Obfusbit:
                     f"(maximum allowed: {max_val_for_bits})."
                 )
 
-            packed_int |= (value << current_shift)
+            packed_int |= value << current_shift
             current_shift += item["bits"]
 
         if obfuscate:

@@ -58,8 +58,6 @@ def obfuskey_too_small_for_uuid() -> Obfuskey:
     return Obfuskey(alphabets.BASE58, key_length=12)  # Max ~71 bits
 
 
-# --- Test Class for Obfusbit ---
-
 class TestObfusbit:
 
     def test_obfusbit_init_no_obfuskey(
@@ -97,8 +95,14 @@ class TestObfusbit:
             Obfusbit(complex_uuid_schema, obfuskey=obfuskey_too_small_for_uuid)
 
         # Check parts of the error message for robustness
-        assert "The provided schema requires a maximum packed integer value of" in str(excinfo.value)
-        assert "but the provided Obfuskey instance can only handle up to a maximum value of" in str(excinfo.value)
+        assert "The provided schema requires a maximum packed integer value of" in str(
+            excinfo.value
+        )
+
+        assert (
+                "but the provided Obfuskey instance can only handle up to a maximum value of"
+                in str(excinfo.value)
+        )
 
     def test_pack_and_unpack_no_obfuscation(
         self,
@@ -202,7 +206,7 @@ class TestObfusbit:
         [
             (12345, True, TypeError),  # Expecting string, got int
             ("invalid_string", False, TypeError),  # Expecting int, got string
-        ]
+        ],
     )
     def test_unpack_type_error(
         self,
@@ -217,7 +221,10 @@ class TestObfusbit:
 
         with pytest.raises(expected_error) as excinfo:
             obb.unpack(value, obfuscated=obfuscated)
-        assert "must be a string" in str(excinfo.value) or "must be an integer" in str(excinfo.value)
+
+        assert "must be a string" in str(excinfo.value) or "must be an integer" in str(
+            excinfo.value
+        )
 
     def test_unpack_obfuskey_errors_passthrough(
         self,
@@ -263,9 +270,12 @@ class TestObfusbit:
 
         # Verify all fields
         assert actual_values["entity_uuid"] == expected_values["entity_uuid"]
-        assert uuid.UUID(int=actual_values["entity_uuid"]) == test_uuid  # Verify UUID conversion
+        assert uuid.UUID(int=actual_values["entity_uuid"]) == test_uuid
         assert actual_values["version"] == expected_values["version"]
-        assert actual_values["creation_day_of_year"] == expected_values["creation_day_of_year"]
+        assert (
+            actual_values["creation_day_of_year"]
+            == expected_values["creation_day_of_year"]
+        )
         assert actual_values["environment_type"] == expected_values["environment_type"]
         assert actual_values["is_active_flag"] == expected_values["is_active_flag"]
 
