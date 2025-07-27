@@ -62,7 +62,10 @@ def obfuskey_too_small_for_uuid() -> Obfuskey:
 
 class TestObfusbit:
 
-    def test_obfusbit_init_no_obfuskey(self, small_schema: List[Dict[str, int]]) -> None:
+    def test_obfusbit_init_no_obfuskey(
+        self,
+        small_schema: List[Dict[str, int]],
+    ) -> None:
         """Test Obfusbit initialization without an Obfuskey instance."""
         obb = Obfusbit(small_schema)
         assert obb.schema == small_schema
@@ -71,9 +74,9 @@ class TestObfusbit:
         assert obb.max_bits == (1 << 13) - 1
 
     def test_obfusbit_init_with_obfuskey(
-            self,
-            small_schema: List[Dict[str, int]],
-            obfuskey_for_small_schema: Obfuskey
+        self,
+        small_schema: List[Dict[str, int]],
+        obfuskey_for_small_schema: Obfuskey,
     ) -> None:
         """Test Obfusbit initialization with an Obfuskey instance."""
         obb = Obfusbit(small_schema, obfuskey=obfuskey_for_small_schema)
@@ -82,9 +85,9 @@ class TestObfusbit:
         assert obb.total_bits == 13
 
     def test_obfusbit_init_schema_exceeds_obfuskey_max(
-            self,
-            complex_uuid_schema: List[Dict[str, int]],
-            obfuskey_too_small_for_uuid: Obfuskey
+        self,
+        complex_uuid_schema: List[Dict[str, int]],
+        obfuskey_too_small_for_uuid: Obfuskey,
     ) -> None:
         """
         Test that Obfusbit initialization fails if the schema's max packed value
@@ -97,7 +100,10 @@ class TestObfusbit:
         assert "The provided schema requires a maximum packed integer value of" in str(excinfo.value)
         assert "but the provided Obfuskey instance can only handle up to a maximum value of" in str(excinfo.value)
 
-    def test_pack_and_unpack_no_obfuscation(self, small_schema: List[Dict[str, int]]) -> None:
+    def test_pack_and_unpack_no_obfuscation(
+        self,
+        small_schema: List[Dict[str, int]],
+    ) -> None:
         """Test packing and unpacking without obfuscation (raw integer)."""
         obb = Obfusbit(small_schema)
 
@@ -114,9 +120,9 @@ class TestObfusbit:
         assert actual_values == expected_values
 
     def test_pack_and_unpack_with_obfuscation(
-            self,
-            small_schema: List[Dict[str, int]],
-            obfuskey_for_small_schema: Obfuskey
+        self,
+        small_schema: List[Dict[str, int]],
+        obfuskey_for_small_schema: Obfuskey,
     ) -> None:
         """Test packing and unpacking with obfuscation (string key)."""
         obb = Obfusbit(small_schema, obfuskey=obfuskey_for_small_schema)
@@ -134,7 +140,10 @@ class TestObfusbit:
         actual_values = obb.unpack(obfuscated_key, obfuscated=True)
         assert actual_values == expected_values
 
-    def test_pack_bit_overflow_error(self, small_schema: List[Dict[str, int]]) -> None:
+    def test_pack_bit_overflow_error(
+        self,
+        small_schema: List[Dict[str, int]],
+    ) -> None:
         """Test that packing raises BitOverflowError for values exceeding allocated bits."""
         obb = Obfusbit(small_schema)
 
@@ -149,7 +158,10 @@ class TestObfusbit:
         assert "exceeds its allocated" in str(excinfo.value)
         assert "field_a" in str(excinfo.value)
 
-    def test_pack_missing_value_error(self, small_schema: List[Dict[str, int]]) -> None:
+    def test_pack_missing_value_error(
+        self,
+        small_schema: List[Dict[str, int]],
+    ) -> None:
         """Test that packing raises ValueError for missing required values."""
         obb = Obfusbit(small_schema)
 
@@ -163,7 +175,10 @@ class TestObfusbit:
             obb.pack(invalid_values)
         assert "Required value for 'field_b' not provided" in str(excinfo.value)
 
-    def test_pack_obfuscate_without_obfuskey_error(self, small_schema: List[Dict[str, int]]) -> None:
+    def test_pack_obfuscate_without_obfuskey_error(
+        self,
+        small_schema: List[Dict[str, int]],
+    ) -> None:
         """Test that packing with obfuscate=True fails if Obfuskey is not provided."""
         obb = Obfusbit(small_schema)  # No obfuskey instance
 
@@ -171,7 +186,10 @@ class TestObfusbit:
             obb.pack({"field_a": 1, "field_b": 1, "flag_c": 0}, obfuscate=True)
         assert "An Obfuskey instance was not provided" in str(excinfo.value)
 
-    def test_unpack_obfuscated_without_obfuskey_error(self, small_schema: List[Dict[str, int]]) -> None:
+    def test_unpack_obfuscated_without_obfuskey_error(
+        self,
+        small_schema: List[Dict[str, int]],
+    ) -> None:
         """Test that unpacking with obfuscated=True fails if Obfuskey is not provided."""
         obb = Obfusbit(small_schema)  # No obfuskey instance
 
@@ -187,12 +205,12 @@ class TestObfusbit:
         ]
     )
     def test_unpack_type_error(
-            self,
-            small_schema: List[Dict[str, int]],
-            obfuskey_for_small_schema: Obfuskey,
-            value: Union[str, int],
-            obfuscated: bool,
-            expected_error: type[Exception]
+        self,
+        small_schema: List[Dict[str, int]],
+        obfuskey_for_small_schema: Obfuskey,
+        value: Union[str, int],
+        obfuscated: bool,
+        expected_error: type[Exception],
     ) -> None:
         """Test that unpack raises TypeError for incorrect input types based on obfuscated flag."""
         obb = Obfusbit(small_schema, obfuskey=obfuskey_for_small_schema)
@@ -202,9 +220,9 @@ class TestObfusbit:
         assert "must be a string" in str(excinfo.value) or "must be an integer" in str(excinfo.value)
 
     def test_unpack_obfuskey_errors_passthrough(
-            self,
-            small_schema: List[Dict[str, int]],
-            obfuskey_for_small_schema: Obfuskey
+        self,
+        small_schema: List[Dict[str, int]],
+        obfuskey_for_small_schema: Obfuskey,
     ) -> None:
         """Test that Obfuskey-specific errors (UnknownKeyError, KeyLengthError) pass through unpack."""
         obb = Obfusbit(small_schema, obfuskey=obfuskey_for_small_schema)
@@ -218,9 +236,9 @@ class TestObfusbit:
             obb.unpack("short", obfuscated=True)  # Too short for key_length=6
 
     def test_uuid_packing_and_unpacking_success(
-            self,
-            complex_uuid_schema: List[Dict[str, int]],
-            obfuskey_for_complex_uuid_schema: Obfuskey
+        self,
+        complex_uuid_schema: List[Dict[str, int]],
+        obfuskey_for_complex_uuid_schema: Obfuskey,
     ) -> None:
         """Test packing and unpacking a schema containing a UUID and other fields."""
         obb = Obfusbit(complex_uuid_schema, obfuskey=obfuskey_for_complex_uuid_schema)

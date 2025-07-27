@@ -21,7 +21,7 @@ class Obfusbit:
         self,
         schema: List[Dict[str, int]],
         *,
-        obfuskey: Optional[Obfuskey] = None
+        obfuskey: Optional[Obfuskey] = None,
     ):
         """
         Initializes the Obfusbit packer and unpacker.
@@ -121,7 +121,9 @@ class Obfusbit:
             value = values.get(str(item["name"]))
 
             if value is None:
-                raise ValueError(f"Required value for '{item['name']}' not provided in input values.")
+                raise ValueError(
+                    f"Required value for '{item['name']}' not provided in input values."
+                )
 
             if not (0 <= value < (1 << item["bits"])):
                 max_val_for_bits = (1 << item["bits"]) - 1
