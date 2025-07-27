@@ -7,6 +7,12 @@ class ObfuskeyError(Exception):
     pass
 
 
+class BitOverflowError(ObfuskeyError):
+    """Raised when a value provided for bit packing exceeds its allocated bit capacity in the schema."""
+
+    pass
+
+
 class DuplicateError(ObfuskeyError):
     """Raised when the provided alphabet contains duplicate characters"""
 
@@ -37,19 +43,25 @@ class NegativeValueError(ObfuskeyError):
     pass
 
 
+class SchemaValidationError(ObfuskeyError):
+    """Raised when the provided schema for Obfusbit is invalid or malformed."""
+
+    pass
+
+
 class UnknownKeyError(ObfuskeyError):
     """Raised when an encoded value contains characters not found in the alphabet"""
 
     pass
 
 
-class BitOverflowError(ObfuskeyError):
-    """Raised when a value provided for bit packing exceeds its allocated bit capacity in the schema."""
-
-    pass
-
-
-class SchemaValidationError(ObfuskeyError):
-    """Raised when the provided schema for Obfusbit is invalid or malformed."""
-
-    pass
+__all__ = (
+    "ObfuskeyError",
+    "DuplicateError",
+    "KeyLengthError",
+    "MaximumValueError",
+    "MultiplierError",
+    "UnknownKeyError",
+    "BitOverflowError",
+    "SchemaValidationError",
+)

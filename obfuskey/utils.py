@@ -94,3 +94,10 @@ def generate_prime(
     target_value = int((len(alphabet) ** key_length - 1) * prime_multiplier)
 
     return next_prime(target_value)
+
+
+__all__ = (
+    "decode",
+    "encode",
+    "generate_prime",
+)

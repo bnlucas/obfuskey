@@ -50,6 +50,28 @@ class Obfuskey:
         self.__multiplier = multiplier
         self.__prime_multiplier = PRIME_MULTIPLIER
 
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Obfuskey object.
+        """
+        multiplier_info = ""
+
+        if self.__multiplier is not None:
+            multiplier_info = f", multiplier={self.__multiplier}"
+        else:
+            multiplier_info = (
+                f", multiplier=auto (prime_mult={self.__prime_multiplier})"
+            )
+
+        display_alphabet = f"'{self.__alphabet}'"
+        if len(self.__alphabet) > 20:
+            display_alphabet = f"'{self.__alphabet[:10]}...{self.__alphabet[-5:]}'"
+
+        return (
+            f"Obfuskey(alphabet={display_alphabet}, key_length={self.__key_length}"
+            f"{multiplier_info})"
+        )
+
     @property
     def alphabet(self) -> str:
         """
@@ -184,3 +206,6 @@ class Obfuskey:
             self.__key_length,
             prime_multiplier=self.__prime_multiplier,
         )
+
+
+__all__ = ("Obfuskey",)

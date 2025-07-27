@@ -198,4 +198,21 @@ def trial_division(n: int) -> bool:
     :return: `True` if the integer is prime, `False` otherwise.
     :rtype: bool
     """
+    if n <= 1:
+        return False
+
+    if n == 2:
+        return True
+
     return all(n % i for i in range(3, isqrt(n) + 1, 2))
+
+
+__all__ = (
+    "factor",
+    "is_prime",
+    "modinv",
+    "next_prime",
+    "small_strong_pseudoprime",
+    "strong_pseudoprime",
+    "trial_division",
+)

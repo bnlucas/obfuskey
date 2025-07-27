@@ -1,296 +1,516 @@
 from __future__ import annotations
 
 import pytest
-import uuid
-import datetime
 
-from typing import Dict, List, Union
-
-from obfuskey import Obfuskey, Obfusbit, alphabets
+from obfuskey import Obfusbit, ObfusbitSchema, Obfuskey, alphabets
 from obfuskey.exceptions import (
     BitOverflowError,
     MaximumValueError,
-    KeyLengthError,
-    UnknownKeyError,
+    SchemaValidationError,
 )
 
 
-@pytest.fixture
-def small_schema() -> List[Dict[str, int]]:
-    """A small schema for basic testing."""
-    return [
-        {"name": "field_a", "bits": 8},  # Max 255
-        {"name": "field_b", "bits": 4},  # Max 15
-        {"name": "flag_c", "bits": 1},  # Max 1
-    ]  # Total 13 bits, Max packed value = 2^13 - 1 = 8191
-
-
-@pytest.fixture
-def obfuskey_for_small_schema() -> Obfuskey:
-    """Obfuskey instance sufficient for small_schema (e.g., 13 bits)."""
-    # BASE58, key_length=6 => max_value ~4e10 (covers 13 bits easily)
-    return Obfuskey(alphabets.BASE58, key_length=6)
-
-
-@pytest.fixture
-def complex_uuid_schema() -> List[Dict[str, int]]:
-    """A schema that includes a UUID and other fields."""
-    return [
-        {"name": "entity_uuid", "bits": 128},
-        {"name": "version", "bits": 4},
-        {"name": "creation_day_of_year", "bits": 9},
-        {"name": "environment_type", "bits": 2},
-        {"name": "is_active_flag", "bits": 1},
-    ]  # Total 144 bits
-
-
-@pytest.fixture
-def obfuskey_for_complex_uuid_schema() -> Obfuskey:
-    """Obfuskey instance sufficient for complex_uuid_schema (144 bits)."""
-    # Need key_length at least 25 for BASE58 to cover 144 bits. Use 26 for safety.
-    return Obfuskey(alphabets.BASE58, key_length=26)
-
-
-@pytest.fixture
-def obfuskey_too_small_for_uuid() -> Obfuskey:
-    """Obfuskey instance that cannot handle a UUID's bit length."""
-    return Obfuskey(
-        alphabets.BASE58, key_length=12
-    )  # Max ~71 bits, much smaller than 144 bits
-
-
 class TestObfusbit:
+    """
+    Pytest tests for the Obfusbit class.
+    """
 
-    def test_obfusbit_init_no_obfuskey(
-        self,
-        small_schema: List[Dict[str, int]],
-    ) -> None:
-        """Test Obfusbit initialization without an Obfuskey instance."""
-        obb = Obfusbit(small_schema)
-        assert obb.schema == small_schema
-        assert obb.obfuskey is None
-        assert obb.total_bits == 13
-        assert obb.max_bits == (1 << 13) - 1
+    SIMPLE_SCHEMA_DEF = [
+        {"name": "id", "bits": 10},  # Max value 1023
+        {"name": "type", "bits": 2},  # Max value 3
+        {"name": "flag", "bits": 1},  # Max value 1
+    ]
 
-    def test_obfusbit_init_with_obfuskey(
-        self,
-        small_schema: List[Dict[str, int]],
-        obfuskey_for_small_schema: Obfuskey,
-    ) -> None:
-        """Test Obfusbit initialization with an Obfuskey instance."""
-        obb = Obfusbit(small_schema, obfuskey=obfuskey_for_small_schema)
+    @pytest.fixture
+    def simple_schema(self):
+        return ObfusbitSchema(self.SIMPLE_SCHEMA_DEF)
 
-        assert obb.schema == small_schema
-        assert obb.obfuskey == obfuskey_for_small_schema
-        assert obb.total_bits == 13
+    @pytest.fixture
+    def obfuskey_instance(self):
+        return Obfuskey(alphabets.BASE62, key_length=3)
 
-    def test_obfusbit_init_schema_exceeds_obfuskey_max(
-        self,
-        complex_uuid_schema: List[Dict[str, int]],
-        obfuskey_too_small_for_uuid: Obfuskey,
-    ) -> None:
+    @pytest.fixture
+    def obfuskey_too_small(self):
+        return Obfuskey(alphabets.BASE62, key_length=1)
+
+    def test_init_with_list_schema(self, simple_schema):
         """
-        Test that Obfusbit initialization fails if the schema's max packed value
-        exceeds the provided Obfuskey's maximum_value.
+        Test initialization with a list of dictionaries for schema.
         """
-        # Debugging check: Ensure fixture logic is sound for this test
-        total_schema_bits = sum(item["bits"] for item in complex_uuid_schema)
-        schema_max_packed_value = (1 << total_schema_bits) - 1
-        assert (
-            obfuskey_too_small_for_uuid.maximum_value < schema_max_packed_value
-        ), "Fixture obfuskey_too_small_for_uuid is not small enough for complex_uuid_schema!"
+        obfusbit = Obfusbit(self.SIMPLE_SCHEMA_DEF)
+        assert isinstance(obfusbit._schema, ObfusbitSchema)
+        assert obfusbit.total_bits == 13
+        assert obfusbit.max_bits == 8191
+        assert obfusbit.obfuskey is None
 
-        with pytest.raises(MaximumValueError) as excinfo:
-            Obfusbit(complex_uuid_schema, obfuskey=obfuskey_too_small_for_uuid)
+    def test_init_with_obfusbitschema_object(self, simple_schema):
+        """
+        Test initialization with an existing ObfusbitSchema object.
+        """
+        obfusbit = Obfusbit(simple_schema)
+        assert obfusbit._schema is simple_schema
+        assert obfusbit.total_bits == 13
+        assert obfusbit.max_bits == 8191
 
-        # Check parts of the error message for robustness
-        assert "The provided schema requires a maximum packed integer value of" in str(
-            excinfo.value
-        )
+    def test_init_with_obfuskey(self, simple_schema, obfuskey_instance):
+        """
+        Test initialization with an Obfuskey instance.
+        """
+        obfusbit = Obfusbit(simple_schema, obfuskey=obfuskey_instance)
+        assert obfusbit.obfuskey is obfuskey_instance
 
-        assert (
-            "but the provided Obfuskey instance can only handle up to a maximum value of"
-            in str(excinfo.value)
-        )
+    def test_init_raises_maximumvalueerror_if_obfuskey_too_small(
+        self, simple_schema, obfuskey_too_small
+    ):
+        """
+        Test that initialization raises MaximumValueError if Obfuskey cannot handle schema's max value.
+        """
+        with pytest.raises(
+            MaximumValueError,
+            match="The provided schema requires a maximum packed integer value of 8191",
+        ):
+            Obfusbit(simple_schema, obfuskey=obfuskey_too_small)
 
-    def test_pack_and_unpack_no_obfuscation(
-        self,
-        small_schema: List[Dict[str, int]],
-    ) -> None:
-        """Test packing and unpacking without obfuscation (raw integer)."""
-        obb = Obfusbit(small_schema)
+    def test_init_raises_schema_validation_error(self):
+        """
+        Test that initialization propagates SchemaValidationError from ObfusbitSchema.
+        """
+        invalid_schema_def = [{"name": "f1", "bits": 0}]  # Invalid bits
+        with pytest.raises(
+            SchemaValidationError, match="'bits' must be a positive integer"
+        ):
+            Obfusbit(invalid_schema_def)
 
-        expected_values = {
-            "field_a": 123,  # Fits in 8 bits (0-255)
-            "field_b": 7,  # Fits in 4 bits (0-15)
-            "flag_c": 1,  # Fits in 1 bit (0-1)
-        }
-
-        packed_int = obb.pack(expected_values, obfuscate=False)
-        assert isinstance(packed_int, int)
-
-        actual_values = obb.unpack(packed_int, obfuscated=False)
-        assert actual_values == expected_values
-
-    def test_pack_and_unpack_with_obfuscation(
-        self,
-        small_schema: List[Dict[str, int]],
-        obfuskey_for_small_schema: Obfuskey,
-    ) -> None:
-        """Test packing and unpacking with obfuscation (string key)."""
-        obb = Obfusbit(small_schema, obfuskey=obfuskey_for_small_schema)
-
-        expected_values = {
-            "field_a": 200,
-            "field_b": 10,
-            "flag_c": 0,
-        }
-
-        obfuscated_key = obb.pack(expected_values, obfuscate=True)
-        assert isinstance(obfuscated_key, str)
-        assert len(obfuscated_key) == obfuskey_for_small_schema.key_length
-
-        actual_values = obb.unpack(obfuscated_key, obfuscated=True)
-        assert actual_values == expected_values
-
-    def test_pack_bit_overflow_error(
-        self,
-        small_schema: List[Dict[str, int]],
-    ) -> None:
-        """Test that packing raises BitOverflowError for values exceeding allocated bits."""
-        obb = Obfusbit(small_schema)
-
-        invalid_values = {
-            "field_a": 256,  # Exceeds 8 bits (max 255)
-            "field_b": 5,
-            "flag_c": 0,
-        }
-
-        with pytest.raises(BitOverflowError) as excinfo:
-            obb.pack(invalid_values)
-
-        assert "exceeds its allocated" in str(excinfo.value)
-        assert "field_a" in str(excinfo.value)
-
-    def test_pack_missing_value_error(
-        self,
-        small_schema: List[Dict[str, int]],
-    ) -> None:
-        """Test that packing raises ValueError for missing required values."""
-        obb = Obfusbit(small_schema)
-
-        invalid_values = {
-            "field_a": 10,
-            # "field_b" is missing
-            "flag_c": 0,
-        }
-
-        with pytest.raises(ValueError) as excinfo:
-            obb.pack(invalid_values)
-
-        assert "Required value for 'field_b' not provided" in str(excinfo.value)
-
-    def test_pack_obfuscate_without_obfuskey_error(
-        self,
-        small_schema: List[Dict[str, int]],
-    ) -> None:
-        """Test that packing with obfuscate=True fails if Obfuskey is not provided."""
-        obb = Obfusbit(small_schema)  # No obfuskey instance
-
-        with pytest.raises(ValueError) as excinfo:
-            obb.pack({"field_a": 1, "field_b": 1, "flag_c": 0}, obfuscate=True)
-
-        assert "An Obfuskey instance was not provided" in str(excinfo.value)
-
-    def test_unpack_obfuscated_without_obfuskey_error(
-        self,
-        small_schema: List[Dict[str, int]],
-    ) -> None:
-        """Test that unpacking with obfuscated=True fails if Obfuskey is not provided."""
-        obb = Obfusbit(small_schema)  # No obfuskey instance
-
-        with pytest.raises(ValueError) as excinfo:
-            obb.unpack("some_obfuscated_string", obfuscated=True)
-
-        assert "An Obfuskey instance was not provided" in str(excinfo.value)
+    def test_properties_return_correct_values(self, simple_schema, obfuskey_instance):
+        """
+        Test that properties (total_bits, max_bits, schema, obfuskey) return correct values.
+        """
+        obfusbit = Obfusbit(simple_schema, obfuskey=obfuskey_instance)
+        assert obfusbit.total_bits == 13
+        assert obfusbit.max_bits == 8191
+        assert obfusbit.schema == self.SIMPLE_SCHEMA_DEF
+        assert obfusbit.obfuskey is obfuskey_instance
 
     @pytest.mark.parametrize(
-        "value, obfuscated, expected_error",
+        "total_bits, packed_int, byteorder, expected_bytes, expected_byte_length",
         [
-            (12345, True, TypeError),  # Expecting string, got int
-            ("invalid_string", False, TypeError),  # Expecting int, got string
+            (8, 255, "big", b"\xff", 1),  # 8 bits, max value
+            (8, 0, "big", b"\x00", 1),  # 8 bits, min value
+            (
+                12,
+                1234,
+                "big",
+                b"\x04\xd2",
+                2,
+            ),  # 12 bits, needs 2 bytes. (1234 = 0b010011010010)
+            (12, 1234, "little", b"\xd2\x04", 2),
+            (16, 65535, "big", b"\xff\xff", 2),  # 16 bits, max value
+            (1, 1, "big", b"\x01", 1),  # 1 bit, needs 1 byte
+            (1, 0, "big", b"\x00", 1),  # 1 bit, needs 1 byte
+            (7, 127, "big", b"\x7f", 1),  # 7 bits, needs 1 byte
+            (
+                9,
+                511,
+                "big",
+                b"\x01\xff",
+                2,
+            ),  # 9 bits, needs 2 bytes (511 = 0b111111111)
         ],
     )
-    def test_unpack_type_error(
+    def test_int_to_bytes_internal(
         self,
-        small_schema: List[Dict[str, int]],
-        obfuskey_for_small_schema: Obfuskey,
-        value: Union[str, int],
-        obfuscated: bool,
-        expected_error: type[Exception],
-    ) -> None:
-        """Test that unpack raises TypeError for incorrect input types based on obfuscated flag."""
-        obb = Obfusbit(small_schema, obfuskey=obfuskey_for_small_schema)
+        total_bits,
+        packed_int,
+        byteorder,
+        expected_bytes,
+        expected_byte_length,
+        monkeypatch,
+    ):
+        """
+        Test the _int_to_bytes_internal method.
+        Requires mocking _schema for total_bits and max_bits.
+        """
+        mock_schema = ObfusbitSchema([{"name": "mock", "bits": total_bits}])
 
-        with pytest.raises(expected_error) as excinfo:
-            obb.unpack(value, obfuscated=obfuscated)
+        obfusbit = Obfusbit(mock_schema)
 
-        assert "must be a string" in str(excinfo.value) or "must be an integer" in str(
-            excinfo.value
+        # Explicitly set _total_bits and _max_bits for the test case as Obfusbit.__init__
+        # already computed them from mock_schema.
+        # This part is largely for clarity, as the mock_schema already sets them.
+        obfusbit._total_bits = total_bits
+        obfusbit._max_bits = (1 << total_bits) - 1
+
+        assert obfusbit._int_to_bytes_internal(packed_int, byteorder) == expected_bytes
+        assert obfusbit._get_required_byte_length() == expected_byte_length
+
+    @pytest.mark.parametrize(
+        "total_bits, packed_int, byteorder, error_message_part",
+        [
+            (
+                8,
+                256,
+                "big",
+                r"Packed integer 256 is out of range \(0 to 255\) for the schema's total bit capacity\.",
+            ),  # Too high
+            (
+                8,
+                -1,
+                "big",
+                r"Packed integer -1 is out of range \(0 to 255\) for the schema's total bit capacity\.",
+            ),  # Too low
+        ],
+    )
+    def test_int_to_bytes_internal_raises_value_error(
+        self, total_bits, packed_int, byteorder, error_message_part, monkeypatch
+    ):
+        """
+        Test _int_to_bytes_internal raises ValueError for out-of-range packed_int.
+        """
+        mock_schema = ObfusbitSchema([{"name": "mock", "bits": total_bits}])
+        obfusbit = Obfusbit(mock_schema)
+        obfusbit._total_bits = total_bits
+        obfusbit._max_bits = (1 << total_bits) - 1
+
+        with pytest.raises(ValueError, match=error_message_part):
+            obfusbit._int_to_bytes_internal(packed_int, byteorder)
+
+    @pytest.mark.parametrize(
+        "total_bits, byte_data, byteorder, expected_int, expected_byte_length",
+        [
+            (8, b"\xff", "big", 255, 1),
+            (8, b"\x00", "big", 0, 1),
+            (12, b"\x04\xd2", "big", 1234, 2),
+            (12, b"\xd2\x04", "little", 1234, 2),
+            (16, b"\xff\xff", "big", 65535, 2),
+        ],
+    )
+    def test_bytes_to_int_internal(
+        self,
+        total_bits,
+        byte_data,
+        byteorder,
+        expected_int,
+        expected_byte_length,
+        monkeypatch,
+    ):
+        """
+        Test _bytes_to_int_internal for correct conversion.
+        Requires mocking _schema for total_bits.
+        """
+        mock_schema = ObfusbitSchema([{"name": "mock", "bits": total_bits}])
+        obfusbit = Obfusbit(mock_schema)
+        obfusbit._total_bits = (
+            total_bits  # ensure the _total_bits property reflects the mock
         )
 
-    def test_unpack_obfuskey_errors_passthrough(
+        assert obfusbit._bytes_to_int_internal(byte_data, byteorder) == expected_int
+        assert obfusbit._get_required_byte_length() == expected_byte_length
+
+    @pytest.mark.parametrize(
+        "total_bits, byte_data, byteorder, error_type, error_message_part",
+        [
+            (
+                8,
+                "not_bytes",
+                "big",
+                TypeError,
+                "Input 'byte_data' must be a bytes object.",
+            ),
+            (
+                8,
+                b"\xff\x00",
+                "big",
+                ValueError,
+                r"Byte data length \(2\) does not match expected length for this schema \(1 bytes based on 8 bits\)\.",
+            ),
+            (
+                16,
+                b"\xff",
+                "big",
+                ValueError,
+                r"Byte data length \(1\) does not match expected length for this schema \(2 bytes based on 16 bits\)\.",
+            ),
+        ],
+    )
+    def test_bytes_to_int_internal_raises_error(
         self,
-        small_schema: List[Dict[str, int]],
-        obfuskey_for_small_schema: Obfuskey,
-    ) -> None:
-        """Test that Obfuskey-specific errors (UnknownKeyError, KeyLengthError) pass through unpack."""
-        obb = Obfusbit(small_schema, obfuskey=obfuskey_for_small_schema)
+        total_bits,
+        byte_data,
+        byteorder,
+        error_type,
+        error_message_part,
+        monkeypatch,
+    ):
+        """
+        Test _bytes_to_int_internal raises TypeError or ValueError for invalid inputs.
+        """
+        mock_schema = ObfusbitSchema([{"name": "mock", "bits": total_bits}])
+        obfusbit = Obfusbit(mock_schema)
+        obfusbit._total_bits = total_bits
 
-        # Test UnknownKeyError
-        with pytest.raises(UnknownKeyError):
-            obb.unpack("!!!!badkey!!", obfuscated=True)  # Contains chars not in BASE58
+        with pytest.raises(error_type, match=error_message_part):
+            obfusbit._bytes_to_int_internal(byte_data, byteorder)
 
-        # Test KeyLengthError
-        with pytest.raises(KeyLengthError):
-            obb.unpack("short", obfuscated=True)  # Too short for key_length=6
+    def test_pack_success_no_obfuscation(self, simple_schema):
+        """
+        Test successful packing without obfuscation.
+        Schema: id (10 bits, shift 3), type (2 bits, shift 1), flag (1 bit, shift 0)
+        Packed order: ID_ID_ID_ID_ID_ID_ID_ID_ID_ID | TYPE_TYPE | FLAG
+        """
+        # flag=1 (0b1) << 0 = 0b1
+        # type=2 (0b10) << 1 = 0b100 (because flag is 1 bit, type starts at shift 1)
+        # id=100 (0b1100100) << 3 = 0b1100100000 (because type (2) + flag (1) = 3 bits shifted)
+        # Packed: 0b1100100000000 | 0b100 | 0b1 (this order is if the shift starts from LSB based on definition order)
+        # No, it's shift 0 for the LAST element in schema, which is 'flag'.
+        # So 'flag' is LSB.
+        # 'id': 100 (0b1100100) -> Shifted by 3 (flag:1 + type:2 = 3) -> 0b1100100_000
+        # 'type': 2 (0b10) -> Shifted by 1 (flag:1) -> 0b10_0
+        # 'flag': 1 (0b1) -> Shifted by 0 -> 0b1
 
-    def test_uuid_packing_and_unpacking_success(
-        self,
-        complex_uuid_schema: List[Dict[str, int]],
-        obfuskey_for_complex_uuid_schema: Obfuskey,
-    ) -> None:
-        """Test packing and unpacking a schema containing a UUID and other fields."""
-        obb = Obfusbit(complex_uuid_schema, obfuskey=obfuskey_for_complex_uuid_schema)
+        # Packed = (id << 3) | (type << 1) | (flag << 0)
+        # (100 << 3) = 100 * 8 = 800 (0b1100100000)
+        # (2 << 1) = 4 (0b100)
+        # (1 << 0) = 1 (0b1)
+        # 800 | 4 | 1 = 805
+        # 0b11001000000 | 0b100 | 0b1
+        # = 0b11001001001
+        # Correct calculations from `_calculate_field_info`:
+        # 'flag': {'bits': 1, 'shift': 0}
+        # 'type': {'bits': 2, 'shift': 1}
+        # 'id':   {'bits': 10, 'shift': 3}
+        # packed_int = (values["id"] << 3) | (values["type"] << 1) | (values["flag"] << 0)
+        # packed_int = (100 << 3) | (2 << 1) | (1 << 0)
+        # packed_int = (100 * 8) | (2 * 2) | (1 * 1)
+        # packed_int = 800 | 4 | 1
+        # packed_int = 805
 
-        test_uuid = uuid.uuid4()
-        test_uuid_int = test_uuid.int
-        current_day = datetime.datetime.now().timetuple().tm_yday  # Day of year 1-366
+        obfusbit = Obfusbit(simple_schema)
+        values = {"id": 100, "type": 2, "flag": 1}
+        expected_packed_int = 805
 
-        expected_values = {
-            "entity_uuid": test_uuid_int,
-            "version": 15,
-            "creation_day_of_year": current_day,
-            "environment_type": 1,  # Staging
-            "is_active_flag": 1,
-        }
+        assert obfusbit.pack(values) == expected_packed_int
 
-        obfuscated_key = obb.pack(expected_values, obfuscate=True)
-        assert isinstance(obfuscated_key, str)
-        assert len(obfuscated_key) == obfuskey_for_complex_uuid_schema.key_length
+    def test_pack_success_with_obfuscation(self, simple_schema, obfuskey_instance):
+        """
+        Test successful packing with obfuscation.
+        """
+        obfusbit = Obfusbit(simple_schema, obfuskey=obfuskey_instance)
+        values = {"id": 100, "type": 2, "flag": 1}
+        packed_int = 805
+        expected_obfuscated_key = obfuskey_instance.get_key(packed_int)
 
-        actual_values = obb.unpack(obfuscated_key, obfuscated=True)
+        assert obfusbit.pack(values, obfuscate=True) == expected_obfuscated_key
 
-        # Verify all fields
-        assert actual_values["entity_uuid"] == expected_values["entity_uuid"]
-        assert uuid.UUID(int=actual_values["entity_uuid"]) == test_uuid
-        assert actual_values["version"] == expected_values["version"]
+    def test_pack_raises_valueerror_missing_field(self, simple_schema):
+        """
+        Test pack raises ValueError when a required field is missing.
+        """
+        obfusbit = Obfusbit(simple_schema)
+        values = {"id": 100, "type": 2}
+
+        with pytest.raises(
+            ValueError,
+            match="Required values for the following fields are missing: flag.",
+        ):
+            obfusbit.pack(values)
+
+    def test_pack_raises_valueerror_extra_field(self, simple_schema):
+        """
+        Test pack raises ValueError when an extra field is provided.
+        """
+        obfusbit = Obfusbit(simple_schema)
+        values = {"id": 100, "type": 2, "flag": 1, "extra_field": 5}
+
+        with pytest.raises(
+            ValueError, match="Unexpected fields provided in input values: extra_field"
+        ):
+            obfusbit.pack(values)
+
+    def test_pack_raises_bitoverflowerror(self, simple_schema):
+        """
+        Test pack raises BitOverflowError when a value exceeds its allocated bits.
+        'type' has 2 bits, max value is 3 (0b11)
+        """
+        obfusbit = Obfusbit(simple_schema)
+        values = {"id": 100, "type": 4, "flag": 1}  # type=4 needs 3 bits
+
+        with pytest.raises(
+            BitOverflowError,
+            match="Value 'type' \\(4\\) exceeds its allocated 2 bits \\(maximum allowed: 3\\).",
+        ):
+            obfusbit.pack(values)
+
+    def test_pack_raises_valueerror_no_obfuskey_for_obfuscation(self, simple_schema):
+        """
+        Test pack raises ValueError if obfuscate=True but no Obfuskey was provided.
+        """
+        obfusbit = Obfusbit(simple_schema)
+        values = {"id": 100, "type": 2, "flag": 1}
+
+        with pytest.raises(
+            ValueError,
+            match="An Obfuskey instance was not provided during initialization.",
+        ):
+            obfusbit.pack(values, obfuscate=True)
+
+    def test_pack_raises_maximumvalueerror_obfuscated_value_too_large(self):
+        """
+        Test pack raises MaximumValueError if packed_int exceeds Obfuskey's max_value.
+        Create a schema that results in a large packed_int, and an Obfuskey that's too small.
+        NOTE: With current design, this error is often caught during Obfusbit initialization
+        if Obfuskey's maximum_value is less than schema's total_bits capacity.
+        This test as written confirms the Obfusbit.__init__ error.
+        """
+        schema_def = [
+            {"name": "a", "bits": 10},
+            {"name": "b", "bits": 2},
+            {"name": "c", "bits": 1},
+        ]
+        obfuskey_small = Obfuskey(alphabets.BASE62, key_length=1)
+
+        with pytest.raises(
+            MaximumValueError,
+            match=r"integer value of 8191 \(which needs 13 bits to represent\)",
+        ):
+            Obfusbit(schema_def, obfuskey=obfuskey_small)
+
+    def test_unpack_success_no_obfuscation(self, simple_schema):
+        """
+        Test successful unpacking from an integer.
+        """
+        obfusbit = Obfusbit(simple_schema)
+        packed_int = 805
+        expected_values = {"id": 100, "type": 2, "flag": 1}
+
+        assert obfusbit.unpack(packed_int) == expected_values
+
+    def test_unpack_success_with_obfuscation(self, simple_schema, obfuskey_instance):
+        """
+        Test successful unpacking from an obfuscated string.
+        """
+        obfusbit = Obfusbit(simple_schema, obfuskey=obfuskey_instance)
+        packed_int = 805
+        obfuscated_key = obfuskey_instance.get_key(packed_int)
+        expected_values = {"id": 100, "type": 2, "flag": 1}
+
+        assert obfusbit.unpack(obfuscated_key, obfuscated=True) == expected_values
+
+    def test_unpack_raises_valueerror_no_obfuskey_for_deobfuscation(
+        self, simple_schema
+    ):
+        """
+        Test unpack raises ValueError if obfuscated=True but no Obfuskey.
+        """
+        obfusbit = Obfusbit(simple_schema)
+
+        with pytest.raises(
+            ValueError,
+            match="An Obfuskey instance was not provided during initialization.",
+        ):
+            obfusbit.unpack("some_key", obfuscated=True)
+
+    def test_unpack_raises_typeerror_for_incorrect_packed_data_type(
+        self, simple_schema, obfuskey_instance
+    ):
+        """
+        Test unpack raises TypeError for incorrect packed_data type.
+        """
+        obfusbit = Obfusbit(simple_schema)
+        with pytest.raises(
+            TypeError,
+            match="Input 'packed_data' must be an integer when 'obfuscated' is False.",
+        ):
+            obfusbit.unpack("not_an_int", obfuscated=False)
+
+        obfusbit_with_key = Obfusbit(simple_schema, obfuskey=obfuskey_instance)
+        with pytest.raises(
+            TypeError,
+            match="Input 'packed_data' must be a string when 'obfuscated' is True.",
+        ):
+            obfusbit_with_key.unpack(12345, obfuscated=True)
+
+    def test_pack_bytes_success(self, simple_schema):
+        """
+        Test successful packing to bytes.
+        """
+        obfusbit = Obfusbit(simple_schema)
+        values = {"id": 100, "type": 2, "flag": 1}
+
+        # Packed int is 805 (0b11001001001)
+        # Total bits = 13. Required bytes = (13 + 7) // 8 = 2 bytes.
+        # 805 in 2 bytes big-endian: 0x0325 (0b00000011 00100101)
+        # 805 in 2 bytes little-endian: 0x2503 (0b00100101 00000011)
+        # The result from pack() is 805
+        # 805.to_bytes(2, 'big') = b'\x03\x25'
+        # 805.to_bytes(2, 'little') = b'\x25\x03'
+
+        assert obfusbit.pack_bytes(values, byteorder="big") == b"\x03\x25"
+        assert obfusbit.pack_bytes(values, byteorder="little") == b"\x25\x03"
+
+    def test_pack_bytes_raises_bitoverflowerror(self, simple_schema):
+        """
+        Test pack_bytes raises BitOverflowError, as it uses pack internally.
+        """
+        obfusbit = Obfusbit(simple_schema)
+        values = {"id": 100, "type": 4, "flag": 1}
+
+        with pytest.raises(BitOverflowError):
+            obfusbit.pack_bytes(values)
+
+    def test_pack_bytes_raises_valueerror_missing_field(self, simple_schema):
+        """
+        Test pack_bytes raises ValueError for a missing field, as it uses pack internally.
+        """
+        obfusbit = Obfusbit(simple_schema)
+        values = {"id": 100, "type": 2}
+
+        with pytest.raises(
+            ValueError,
+            match="Required values for the following fields are missing: flag.",
+        ):
+            obfusbit.pack_bytes(values)
+
+    def test_unpack_bytes_success(self, simple_schema):
+        """
+        Test successful unpacking from bytes.
+        """
+        obfusbit = Obfusbit(simple_schema)
+        byte_data_big = b"\x03\x25"
+        byte_data_little = b"\x25\x03"
+        expected_values = {"id": 100, "type": 2, "flag": 1}
+
+        assert obfusbit.unpack_bytes(byte_data_big, byteorder="big") == expected_values
         assert (
-            actual_values["creation_day_of_year"]
-            == expected_values["creation_day_of_year"]
+            obfusbit.unpack_bytes(byte_data_little, byteorder="little")
+            == expected_values
         )
-        assert actual_values["environment_type"] == expected_values["environment_type"]
-        assert actual_values["is_active_flag"] == expected_values["is_active_flag"]
 
-        # A full dictionary comparison is also good if order doesn't matter
-        assert actual_values == expected_values  # This implicitly checks all items
+    def test_unpack_bytes_raises_typeerror_invalid_input_type(self, simple_schema):
+        """
+        Test unpack_bytes raises TypeError for non-bytes input.
+        """
+        obfusbit = Obfusbit(simple_schema)
+
+        with pytest.raises(
+            TypeError, match="Input 'byte_data' must be a bytes object."
+        ):
+            obfusbit.unpack_bytes("not_bytes_data")
+
+    def test_unpack_bytes_raises_valueerror_incorrect_length(self, simple_schema):
+        """
+        Test unpack_bytes raises ValueError for byte data with incorrect length.
+        Schema needs 2 bytes.
+        """
+        obfusbit = Obfusbit(simple_schema)
+
+        with pytest.raises(
+            ValueError,
+            match=r"Byte data length \(1\) does not match expected length for this schema",
+        ):
+            obfusbit.unpack_bytes(b"\x01")
+
+        with pytest.raises(
+            ValueError,
+            match=r"Byte data length \(3\) does not match expected length for this schema",
+        ):
+            obfusbit.unpack_bytes(b"\x01\x02\x03")

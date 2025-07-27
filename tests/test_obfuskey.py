@@ -18,7 +18,7 @@ def test_version():
     assert __version__ == "0.2.0"
 
 
-class TestObfusKey:
+class TestObfuskey:
     def test_obfuskey(self) -> None:
         key_length = random.randint(1, 32)
         obfuskey = Obfuskey(random.choice(alphabets.__all__), key_length=key_length)
@@ -85,6 +85,7 @@ class TestObfusKey:
     )
     def test_get_key(self, alphabet: str, value: int, key: str) -> None:
         obfuskey = Obfuskey(alphabet)
+
         assert obfuskey.get_key(value) == key
 
     def test_get_key_negative(self) -> None:
@@ -99,6 +100,7 @@ class TestObfusKey:
 
     def test_get_key_zero_value(self) -> None:
         obfuskey = Obfuskey("abc")
+
         assert obfuskey.get_key(0) == "aaaaaa"
 
     @pytest.mark.parametrize(
@@ -117,6 +119,7 @@ class TestObfusKey:
     )
     def test_get_value(self, alphabet: str, value: int, key: str) -> None:
         obfuskey = Obfuskey(alphabet)
+
         assert obfuskey.get_value(key) == value
 
     def test_get_value_unknown_value(self) -> None:
@@ -131,4 +134,50 @@ class TestObfusKey:
 
     def test_get_value_zero_value_key(self) -> None:
         obfuskey = Obfuskey("abc")
+
         assert obfuskey.get_value("aaaaaa") == 0
+
+    @pytest.mark.parametrize(
+        "alphabet,value",
+        [
+            (alphabets.BASE16, 12345),
+            (alphabets.BASE32, 12345),
+            (alphabets.BASE36, 12345),
+            (alphabets.BASE52, 12345),
+            (alphabets.BASE56, 12345),
+            (alphabets.BASE58, 12345),
+            (alphabets.BASE62, 12345),
+            (alphabets.BASE64, 12345),
+            (alphabets.BASE94, 12345),
+            (alphabets.BASE62, 0),
+            (alphabets.BASE62, 1),
+            (alphabets.BASE62, 1000000),
+            (alphabets.BASE36, 0),
+            (alphabets.BASE36, 1),
+            (alphabets.BASE36, 50000),
+            (alphabets.BASE94, 0),
+            (alphabets.BASE94, 1),
+            (alphabets.BASE94, 200000),
+        ],
+    )
+    def test_get_key_and_get_value_roundtrip(self, alphabet: str, value: int) -> None:
+        """
+        Tests that a value can be correctly obfuscated and then de-obfuscated back
+        to its original value for various alphabets and values.
+        """
+
+        fixed_key_length = 6
+        obfuskey = Obfuskey(alphabet, key_length=fixed_key_length)
+
+        if value > obfuskey.maximum_value:
+
+            pytest.skip(
+                f"Value {value} is too large for Obfuskey with alphabet '{alphabet}' and "
+                f"key_length {fixed_key_length}. Max is {obfuskey.maximum_value}"
+            )
+
+        obfuscated_key = obfuskey.get_key(value)
+        actual_value = obfuskey.get_value(obfuscated_key)
+
+        assert actual_value == value
+        assert len(obfuscated_key) == fixed_key_length

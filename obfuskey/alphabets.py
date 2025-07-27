@@ -13,4 +13,14 @@ BASE94 = (
     "[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 )
 
-__all__ = (BASE16, BASE32, BASE36, BASE52, BASE56, BASE58, BASE62, BASE64, BASE94)
+__all__ = (
+    "BASE16",
+    "BASE32",
+    "BASE36",
+    "BASE52",
+    "BASE56",
+    "BASE58",
+    "BASE62",
+    "BASE64",
+    "BASE94",
+)

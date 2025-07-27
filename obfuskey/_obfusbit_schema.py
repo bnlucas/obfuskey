@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import copy
+
 from typing import Dict, List, Any, Set
 
-from obfuskey.exceptions import SchemaValidationError
+from obfuskey.exceptions import SchemaValidationError, BitOverflowError
 
 
 class ObfusbitSchema:
@@ -26,6 +28,7 @@ class ObfusbitSchema:
         self._total_bits_val = sum(item["bits"] for item in raw_schema)
         self._max_bits_val = (1 << self._total_bits_val) - 1
         self._field_info = self._calculate_field_info(raw_schema)
+        self._field_names_set = {str(item["name"]) for item in raw_schema}
 
     def __repr__(self) -> str:
         """
@@ -53,7 +56,7 @@ class ObfusbitSchema:
                  dictionaries containing 'bits' and 'shift' (int).
         :rtype: Dict[str, Dict[str, int]]
         """
-        return self._field_info.copy()
+        return copy.deepcopy(self._field_info)
 
     @property
     def total_bits(self) -> int:
@@ -76,6 +79,16 @@ class ObfusbitSchema:
         """
         return self._max_bits_val
 
+    @property
+    def field_names(self) -> Set[str]:
+        """
+        A set of all field names defined in the schema for quick lookup.
+
+        :return: A set of field names.
+        :rtype: Set[str]
+        """
+        return self._field_names_set
+
     @staticmethod
     def _calculate_field_info(
         raw_schema: List[Dict[str, int]],
@@ -92,9 +105,6 @@ class ObfusbitSchema:
         field_info = {}
         current_shift = 0
 
-        # Fields are packed from least significant to most significant bits.
-        # Iterating in reverse calculates the correct shift for each field
-        # based on the cumulative bit length of subsequent fields.
         for item in reversed(raw_schema):
             field_info[str(item["name"])] = {
                 "bits": item["bits"],
@@ -190,6 +200,42 @@ class ObfusbitSchema:
         if name not in self._field_info:
             raise ValueError(f"Field '{name}' not found in schema.")
         return self._field_info[name]
+
+    def validate_values(self, values: Dict[str, int]) -> None:
+        """
+        Validates a dictionary of input values against the schema's definition.
+        Checks for:
+        1. Missing required fields.
+        2. Unexpected (extra) fields.
+        3. Values exceeding their allocated bits (BitOverflowError).
+
+        :param values: A dictionary where keys are field names and values are their integer values.
+        :raises ValueError: If a required field is missing or an unexpected field is provided.
+        :raises BitOverflowError: If any value exceeds its allocated bits in the schema.
+        """
+        input_field_names = set(values.keys())
+
+        missing_fields = self.field_names - input_field_names
+        if missing_fields:
+            raise ValueError(
+                f"Required values for the following fields are missing: {', '.join(sorted(missing_fields))}."
+            )
+
+        extra_fields = input_field_names - self.field_names
+        if extra_fields:
+            raise ValueError(
+                f"Unexpected fields provided in input values: {', '.join(sorted(extra_fields))}."
+            )
+
+        for field_name, value in values.items():
+            field_details = self.get_field_info(field_name)
+            bits = field_details["bits"]
+
+            if not (0 <= value < (1 << bits)):
+                raise BitOverflowError(
+                    f"Value '{field_name}' ({value}) exceeds its allocated {bits} bits "
+                    f"(maximum allowed: {(1 << bits) - 1})."
+                )
 
 
 __all__ = ("ObfusbitSchema",)
