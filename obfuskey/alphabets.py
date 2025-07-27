@@ -30,5 +30,5 @@ __all__ = (
     "BASE94",
     "CROCKFORD_BASE32",
     "ZBASE32",
-    "BASE64_URL_SAFE"
+    "BASE64_URL_SAFE",
 )
