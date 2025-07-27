@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import pytest
+import sys
+
+from unittest import mock
 
 from obfuskey._math import (
     factor,
@@ -180,6 +183,15 @@ class TestPrimalityUtils:
 
         with pytest.raises(MaximumValueError):
             next_prime(2**512)
+
+    def test_next_prime_gmpy2(self) -> None:
+        if "gmpy2" in sys.modules:
+            del sys.modules["gmpy2"]
+
+        gmpy2_mock = mock.MagicMock()
+        sys.modules["gmpy2"] = gmpy2_mock
+
+        next_prime(int("9" * 155))
 
     @pytest.mark.parametrize(
         "n, expected",

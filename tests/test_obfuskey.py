@@ -3,6 +3,8 @@ from __future__ import annotations
 import random
 import pytest
 
+from decimal import Decimal
+
 from obfuskey import __version__, alphabets, Obfuskey
 from obfuskey.exceptions import (
     DuplicateError,
@@ -29,6 +31,121 @@ class TestObfuskey:
 
         actual = obfuskey.get_value(key)
         assert expected == actual
+
+    def test_repr_default_multiplier(self):
+        """
+        Tests the __repr__ output when no multiplier is explicitly provided,
+        and the default prime multiplier is used.
+        """
+        alphabet = alphabets.BASE62
+        key_length = 8
+
+        # The default PRIME_MULTIPLIER from _constants
+        from obfuskey._constants import PRIME_MULTIPLIER
+
+        obfuskey_instance = Obfuskey(alphabet, key_length=key_length)
+        expected_repr = (
+            f"Obfuskey(alphabet='{alphabet}', key_length={key_length}, "
+            f"multiplier=auto (prime_mult={PRIME_MULTIPLIER}))"
+        )
+
+        assert repr(obfuskey_instance) == expected_repr
+
+    def test_repr_with_specified_multiplier(self):
+        """
+        Tests the __repr__ output when a specific multiplier is provided.
+        """
+        alphabet = alphabets.BASE36
+        key_length = 5
+        multiplier = 123456789
+        obfuskey_instance = Obfuskey(
+            alphabet, key_length=key_length, multiplier=multiplier
+        )
+        expected_repr = (
+            f"Obfuskey(alphabet='{alphabet}', key_length={key_length}, "
+            f"multiplier={multiplier})"
+        )
+
+        assert repr(obfuskey_instance) == expected_repr
+
+    def test_repr_with_long_alphabet_default_multiplier(self):
+        """
+        Tests the __repr__ output with a very long alphabet and default multiplier,
+        ensuring the alphabet is truncated in the representation.
+        """
+        long_alphabet = "".join([chr(i) for i in range(33, 127)]) + "ÄÖÜäöüß" * 5
+        key_length = 10
+
+        # The default PRIME_MULTIPLIER from _constants
+        from obfuskey._constants import PRIME_MULTIPLIER
+
+        obfuskey_instance = Obfuskey(long_alphabet, key_length=key_length)
+
+        display_alphabet = f"'{long_alphabet[:10]}...{long_alphabet[-5:]}'"
+        expected_repr = (
+            f"Obfuskey(alphabet={display_alphabet}, key_length={key_length}, "
+            f"multiplier=auto (prime_mult={PRIME_MULTIPLIER}))"
+        )
+
+        assert repr(obfuskey_instance) == expected_repr
+
+    def test_repr_with_long_alphabet_specified_multiplier(self):
+        """
+        Tests the __repr__ output with a very long alphabet and a specified multiplier,
+        ensuring the alphabet is truncated in the representation.
+        """
+        long_alphabet = alphabets.BASE94 * 3
+        key_length = 7
+        multiplier = 987654321
+        obfuskey_instance = Obfuskey(
+            long_alphabet, key_length=key_length, multiplier=multiplier
+        )
+
+        display_alphabet = f"'{long_alphabet[:10]}...{long_alphabet[-5:]}'"
+        expected_repr = (
+            f"Obfuskey(alphabet={display_alphabet}, key_length={key_length}, "
+            f"multiplier={multiplier})"
+        )
+
+        assert repr(obfuskey_instance) == expected_repr
+
+    def test_repr_after_multiplier_generation(self):
+        """
+        Tests the __repr__ output after the multiplier has been implicitly generated.
+        """
+        alphabet = alphabets.BASE62
+        key_length = 3
+        obfuskey_instance = Obfuskey(alphabet, key_length=key_length)
+
+        _ = obfuskey_instance.multiplier
+
+        expected_repr = (
+            f"Obfuskey(alphabet='{alphabet}', key_length={key_length}, "
+            f"multiplier={obfuskey_instance.multiplier})"
+        )
+
+        assert repr(obfuskey_instance) == expected_repr
+
+    def test_repr_after_set_prime_multiplier(self):
+        """
+        Tests the __repr__ output after set_prime_multiplier has been called,
+        resetting the multiplier to auto-generate.
+        """
+        alphabet = alphabets.BASE36
+        key_length = 4
+        obfuskey_instance = Obfuskey(
+            alphabet, key_length=key_length, multiplier=101
+        )  # Start with a multiplier
+
+        new_prime_multiplier = Decimal("2.0")
+        obfuskey_instance.set_prime_multiplier(new_prime_multiplier)
+
+        expected_repr = (
+            f"Obfuskey(alphabet='{alphabet}', key_length={key_length}, "
+            f"multiplier=auto (prime_mult={new_prime_multiplier}))"
+        )
+
+        assert repr(obfuskey_instance) == expected_repr
 
     def test_duplicates_in_alphabet(self) -> None:
         with pytest.raises(DuplicateError):
