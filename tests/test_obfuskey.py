@@ -37,6 +37,12 @@ class TestObfusKey:
         with pytest.raises(MultiplierError):
             Obfuskey("abcdef", multiplier=multiplier)
 
+    def test_alphabet(self) -> None:
+        alphabet = random.choice(alphabets.__all__)
+        obfuskey = Obfuskey(alphabet)
+
+        assert obfuskey.alphabet == alphabet
+
     def test_key_length(self) -> None:
         key_length = 10
         obfuskey = Obfuskey("abc", key_length=key_length)
