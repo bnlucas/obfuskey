@@ -81,6 +81,39 @@ class TestObfusbit:
         ):
             Obfusbit(invalid_schema_def)
 
+    def test_repr_no_obfuskey(self):
+        """
+        Tests the __repr__ output when no Obfuskey is provided.
+        """
+        schema_definition = [
+            {"name": "field1", "bits": 4},
+            {"name": "field2", "bits": 8},
+        ]
+
+        schema = ObfusbitSchema(schema_definition)
+        obfusbit_instance = Obfusbit(schema)
+        expected_repr = f"Obfusbit(schema={schema!r}, no obfuskey)"
+
+        assert repr(obfusbit_instance) == expected_repr
+
+    def test_repr_with_obfuskey(self):
+        """
+        Tests the __repr__ output when an Obfuskey is provided.
+        """
+        schema_definition = [
+            {"name": "fieldA", "bits": 5},
+            {"name": "fieldB", "bits": 3},
+        ]
+        schema = ObfusbitSchema(schema_definition)
+
+        obfuskey_instance = Obfuskey(
+            alphabet=alphabets.BASE16, key_length=5, multiplier=13
+        )
+        obfusbit_instance = Obfusbit(schema, obfuskey=obfuskey_instance)
+        expected_repr = f"Obfusbit(schema={schema!r}, obfuskey={obfuskey_instance!r})"
+
+        assert repr(obfusbit_instance) == expected_repr
+
     def test_properties_return_correct_values(self, simple_schema, obfuskey_instance):
         """
         Test that properties (total_bits, max_bits, schema, obfuskey) return correct values.
@@ -352,27 +385,6 @@ class TestObfusbit:
             match="An Obfuskey instance was not provided during initialization.",
         ):
             obfusbit.pack(values, obfuscate=True)
-
-    def test_pack_raises_maximumvalueerror_obfuscated_value_too_large(self):
-        """
-        Test pack raises MaximumValueError if packed_int exceeds Obfuskey's max_value.
-        Create a schema that results in a large packed_int, and an Obfuskey that's too small.
-        NOTE: With current design, this error is often caught during Obfusbit initialization
-        if Obfuskey's maximum_value is less than schema's total_bits capacity.
-        This test as written confirms the Obfusbit.__init__ error.
-        """
-        schema_def = [
-            {"name": "a", "bits": 10},
-            {"name": "b", "bits": 2},
-            {"name": "c", "bits": 1},
-        ]
-        obfuskey_small = Obfuskey(alphabets.BASE62, key_length=1)
-
-        with pytest.raises(
-            MaximumValueError,
-            match=r"integer value of 8191 \(which needs 13 bits to represent\)",
-        ):
-            Obfusbit(schema_def, obfuskey=obfuskey_small)
 
     def test_unpack_success_no_obfuscation(self, simple_schema):
         """

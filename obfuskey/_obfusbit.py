@@ -173,13 +173,6 @@ class Obfusbit:
                     "An Obfuskey instance was not provided during initialization."
                 )
 
-            if packed_int > self._obfuskey.maximum_value:
-                raise MaximumValueError(
-                    f"The packed integer value ({packed_int}) generated from the schema "
-                    f"exceeds the maximum value allowed by the associated Obfuskey instance "
-                    f"({self._obfuskey.maximum_value})."
-                )
-
             return self._obfuskey.get_key(packed_int)
 
         return packed_int
