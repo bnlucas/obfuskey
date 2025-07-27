@@ -13,7 +13,7 @@ from obfuskey.exceptions import (
 
 
 def test_version():
-    assert __version__ == "0.1.3"
+    assert __version__ == "0.2.0"
 
 
 class TestObfusKey:
