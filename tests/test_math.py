@@ -11,7 +11,6 @@ from obfuskey._math import (
     strong_pseudoprime,
     trial_division,
     modinv,
-    int_sqrt,
 )
 from obfuskey.exceptions import MaximumValueError
 
@@ -23,49 +22,13 @@ class TestMath:
 
         assert n - 1 == 2**s * d
 
-    @pytest.mark.skipif(
-        sys.version_info > (3, 7),
-        reason="python3.8 and above use the built-in math.isqrt",
-    )
-    def test_int_sqrt(self) -> None:
-        assert int_sqrt(123456789) == 11111
-
-    @pytest.mark.skipif(
-        sys.version_info > (3, 7),
-        reason="python3.8 and above use the built-in math.isqrt",
-    )
-    def test_int_sqrt_negative_value(self) -> None:
-        with pytest.raises(ValueError):
-            int_sqrt(-123456789)
-
-    @pytest.mark.skipif(
-        sys.version_info > (3, 7),
-        reason="python3.8 and above use the built-in math.isqrt",
-    )
-    def test_int_sqrt_eq_0(self) -> None:
-        assert int_sqrt(0) == 0
-
-    @pytest.mark.skipif(
-        sys.version_info > (3, 7),
-        reason="python3.8 and above use the built-in math.isqrt",
-    )
-    @pytest.mark.parametrize("n", [1, 2, 3])
-    def test_int_sqrt_lte_3(self, n: int) -> None:
-        assert int_sqrt(n) == 1
-
     @pytest.mark.parametrize("n,expected", [(2, True), (25, False), (433494437, True)])
     def test_is_prime(self, n: int, expected: bool) -> None:
         assert is_prime(n) == expected
 
-    @pytest.mark.skipif(
-        sys.version_info > (3, 7), reason="python3.8 and above use the built-in pow()"
-    )
     def test_modinv(self) -> None:
         assert modinv(3522107807, 2176782335) == 62006533
 
-    @pytest.mark.skipif(
-        sys.version_info > (3, 7), reason="python3.8 and above use the built-in pow()"
-    )
     def test_modinv_no_modular_inverse(self):
         with pytest.raises(ValueError):
             modinv(200, 2)

@@ -1,4 +1,4 @@
-from math import gcd
+from math import gcd, isqrt
 from typing import Tuple
 
 from obfuskey.exceptions import MaximumValueError
@@ -19,39 +19,6 @@ def factor(n) -> Tuple[int, int]:
         d //= 2
 
     return s, d
-
-
-def int_sqrt(n: int) -> int:
-    """
-    Returns the integer square root of n.
-
-    :param n: an int value
-    :return: the integer square root
-    """
-    try:
-        from math import isqrt
-
-        return isqrt(n)
-    except ImportError:
-        # For Python <=3.7
-        if n < 0:
-            raise ValueError("Square root is not defined for negative numbers.")
-
-        if n == 0:
-            return 0
-
-        if n <= 3:
-            return 1
-
-        a = 1 << ((1 + n.bit_length()) >> 1)
-
-        while True:
-            b = (a + n // a) >> 1
-
-            if b >= a:
-                return a
-
-            a = b
 
 
 def is_prime(n: int) -> int:
@@ -81,25 +48,7 @@ def modinv(base: int, mod: int) -> int:
     :param mod: the modulus
     :return: the modular inverse
     """
-    try:
-        return pow(base, -1, mod)
-    except ValueError:
-        # For Python <=3.7
-        g, _g = base, mod
-        x, _x = 1, 0
-
-        while _g:
-            q = g // _g
-            g, _g = _g, (g - q * _g)
-            x, _x = _x, (x - q * _x)
-
-        if g > 1:
-            raise ValueError("There is no inverse for {} mod {}".format(base, mod))
-
-        if x < 0:
-            x = x + mod
-
-        return x
+    return pow(base, -1, mod)
 
 
 def next_prime(n) -> int:
@@ -220,4 +169,4 @@ def trial_division(n: int) -> int:
     :param n: the integer being tested
     :return: true if the integer is prime, else false
     """
-    return all(n % i for i in range(3, int_sqrt(n) + 1, 2))
+    return all(n % i for i in range(3, isqrt(n) + 1, 2))
