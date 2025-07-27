@@ -13,6 +13,11 @@ BASE94 = (
     "[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 )
 
+CROCKFORD_BASE32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+ZBASE32 = "ybndrfg8ejkmcpqxot1uwisza345h769"
+
+BASE64_URL_SAFE = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
+
 __all__ = (
     "BASE16",
     "BASE32",
@@ -23,4 +28,7 @@ __all__ = (
     "BASE62",
     "BASE64",
     "BASE94",
+    "CROCKFORD_BASE32",
+    "ZBASE32",
+    "BASE64_URL_SAFE"
 )
