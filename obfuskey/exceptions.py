@@ -61,6 +61,7 @@ __all__ = (
     "KeyLengthError",
     "MaximumValueError",
     "MultiplierError",
+    "NegativeValueError",
     "UnknownKeyError",
     "BitOverflowError",
     "SchemaValidationError",
