@@ -148,6 +148,7 @@ class Obfusbit:
                     f"exceeds the maximum value allowed by the associated Obfuskey instance "
                     f"({self._obfuskey.maximum_value}). Adjust schema bit allocation or Obfuskey's key_length."
                 )
+
             return self._obfuskey.get_key(packed_int)
 
         return packed_int

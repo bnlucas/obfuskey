@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 KEY_LENGTH = 6
 PRIME_MULTIPLIER = 1.618033988749894848
 PRIMES_LE_31 = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)

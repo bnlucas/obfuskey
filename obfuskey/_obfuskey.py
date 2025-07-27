@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from obfuskey._constants import KEY_LENGTH, PRIME_MULTIPLIER
 from obfuskey._math import modinv
 from obfuskey._types import FloatType

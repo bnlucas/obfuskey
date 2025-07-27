@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from obfuskey import alphabets, utils

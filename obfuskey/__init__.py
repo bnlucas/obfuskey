@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from obfuskey._obfusbit import Obfusbit
 from obfuskey._obfuskey import Obfuskey
 
