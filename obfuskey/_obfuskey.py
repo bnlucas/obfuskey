@@ -44,6 +44,10 @@ class Obfuskey:
         self.__prime_multiplier = PRIME_MULTIPLIER
 
     @property
+    def alphabet(self) -> str:
+        return self.__alphabet
+
+    @property
     def key_length(self) -> int:
         """Returns the key length that will be generated."""
         return self.__key_length

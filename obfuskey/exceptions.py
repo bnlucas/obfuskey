@@ -38,3 +38,9 @@ class UnknownKeyError(ObfuskeyError):
     """Raised when an encoded value contains characters not found in the alphabet"""
 
     pass
+
+
+class BitOverflowError(ObfuskeyError):
+    """Raised when a value provided for bit packing exceeds its allocated bit capacity in the schema."""
+
+    pass
