@@ -7,6 +7,12 @@ class ObfuskeyError(Exception):
     pass
 
 
+class AlgorithmError(ObfuskeyError):
+    """Raised when an unknown algorithm name or ID is encountered."""
+
+    pass
+
+
 class BitOverflowError(ObfuskeyError):
     """Raised when a value provided for bit packing exceeds its allocated bit capacity in the schema."""
 
@@ -49,6 +55,12 @@ class SchemaValidationError(ObfuskeyError):
     pass
 
 
+class CipherMetaError(ObfuskeyError):
+    """Raised when a ciphertext token is malformed."""
+
+    pass
+
+
 class UnknownKeyError(ObfuskeyError):
     """Raised when an encoded value contains characters not found in the alphabet"""
 
@@ -57,12 +69,14 @@ class UnknownKeyError(ObfuskeyError):
 
 __all__ = (
     "ObfuskeyError",
+    "AlgorithmError",
+    "BitOverflowError",
+    "CipherMetaError",
     "DuplicateError",
     "KeyLengthError",
     "MaximumValueError",
     "MultiplierError",
     "NegativeValueError",
-    "UnknownKeyError",
-    "BitOverflowError",
     "SchemaValidationError",
+    "UnknownKeyError",
 )
